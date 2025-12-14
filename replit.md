@@ -2,13 +2,149 @@
 
 ## Overview
 
-AI Orchestration Hub is a full-stack multi-agent AI orchestration platform that coordinates multiple AI providers (OpenAI, Anthropic, xAI, Perplexity) with cost controls, secure integrations, and centralized memory. The platform enables teams to manage AI workflows across connected services like GitHub, Google Drive, Dropbox, Notion, and Zapier.
+AI Orchestration Hub is a full-stack multi-agent AI orchestration platform that coordinates multiple AI providers (OpenAI, Anthropic, xAI, Perplexity) with cost controls, secure integrations, and centralized memory. The platform enables teams to manage AI workflows across connected services like GitHub, Google Drive, OneDrive, Notion, and Stripe.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
 
-## System Architecture
+---
+
+## 🔐 SECRETS & INTEGRATIONS LOCKER
+
+All integrations are managed securely through **Replit's Secrets tab** (lock icon in sidebar). Never hardcode API keys!
+
+### Connected Integrations (via Replit Connectors)
+| Integration | Status | How to Access |
+|------------|--------|---------------|
+| **Google Drive** | ✅ Connected | Uses Replit OAuth - `server/services/googleDriveClient.ts` |
+| **OneDrive** | ✅ Connected | Uses Replit OAuth - `server/services/oneDriveClient.ts` |
+| **Notion** | ✅ Connected | Uses Replit OAuth - `server/services/notionClient.ts` |
+| **Stripe** | ✅ Connected | Uses Replit Connector - `server/services/stripeClient.ts` |
+| **GitHub** | ✅ Connected | Uses Replit OAuth - existing integration |
+
+### AI Provider API Keys (in Secrets tab)
+| Secret Name | Provider | Used For |
+|------------|----------|----------|
+| `ANTHROPIC_API_KEY` | Claude AI | AI orchestration, code analysis |
+| `XAI_API_KEY` | Grok/xAI | AI orchestration |
+| `PERPLEXITY_API_KEY` | Perplexity | Web search, research |
+| `GOOGLE_API_KEY` | Google AI | Optional AI features |
+
+### System Secrets
+| Secret Name | Purpose |
+|------------|---------|
+| `DATABASE_URL` | PostgreSQL connection (auto-set by Replit) |
+| `SESSION_SECRET` | User session encryption |
+
+**To add/edit secrets:** Click the Secrets tab (🔒 lock icon) in the left sidebar.
+
+---
+
+## 📋 CHANGELOG
+
+### ✅ COMPLETED FEATURES
+
+#### Core Infrastructure
+- [x] Express.js backend with TypeScript
+- [x] PostgreSQL database with Drizzle ORM
+- [x] Session-based authentication with bcrypt
+- [x] Role-Based Access Control (owner, admin, member, viewer)
+- [x] Rate limiting on all endpoints
+- [x] Helmet security headers
+
+#### Frontend
+- [x] React 18 with TypeScript and Vite
+- [x] Tailwind CSS v4 with shadcn/ui components
+- [x] Wouter routing with 12 pages:
+  - Dashboard (Command Deck)
+  - Coding Studio (Monaco editor)
+  - Agents page
+  - Storage page
+  - Integrations page
+  - Settings page
+  - Login/Signup
+  - Roundtable (multi-AI discussions)
+  - Usage tracking
+
+#### Multi-AI Orchestration
+- [x] Provider adapters for Claude, GPT, Grok, Perplexity
+- [x] Roundtable multi-AI discussion sessions
+- [x] Usage tracking and cost estimation
+- [x] Decision traces with approval workflows
+
+#### Integrations (All Connected)
+- [x] Google Drive - list, upload, download, create folders, delete
+- [x] OneDrive - list, upload, download, create folders, delete
+- [x] Notion - pages and databases CRUD
+- [x] Stripe - products, prices, checkout, subscriptions, portal
+- [x] GitHub - repository operations
+
+#### Database Schema
+- [x] Users, Organizations, Projects
+- [x] Integrations and Secret References
+- [x] Agent Runs, Messages, Memory Items
+- [x] Roundtable Sessions and Messages
+- [x] Usage Records and Budgets
+- [x] Workspaces
+- [x] Subscriptions (linked to Stripe)
+- [x] Promo Codes and Redemptions
+- [x] Storage Files tracking
+
+---
+
+### 🔲 TODO - FEATURES TO BUILD
+
+#### Priority 1: Storage Hub
+- [ ] Update `client/src/pages/Storage.tsx` to fetch real files from APIs
+- [ ] Add provider selection tabs (Google Drive, OneDrive, GitHub)
+- [ ] Implement file browser with folder navigation
+- [ ] Add upload/download functionality
+- [ ] Show storage quota from each provider
+
+**Relevant files:**
+- `client/src/pages/Storage.tsx` - Frontend page (currently has mock data)
+- `server/services/googleDriveClient.ts` - Google Drive API
+- `server/services/oneDriveClient.ts` - OneDrive API
+- `server/routes.ts` - API endpoints (search for "GOOGLE DRIVE ROUTES", "ONEDRIVE ROUTES")
+
+#### Priority 2: Workspace System
+- [ ] Create workspace CRUD API routes
+- [ ] Build workspace management UI
+- [ ] Link workspaces to projects
+- [ ] Add file association to workspaces
+
+**Relevant files:**
+- `shared/schema.ts` - `workspaces` table is ready
+- `server/storage.ts` - Add workspace storage methods
+- `server/routes.ts` - Add workspace routes
+
+#### Priority 3: Website Builder Wizard
+- [ ] Create multi-step wizard component
+- [ ] Step 1: Plan (define requirements)
+- [ ] Step 2: Design (select templates)
+- [ ] Step 3: Build (generate code with AI)
+- [ ] Step 4: Deploy (publish to Replit)
+
+**Suggested approach:**
+- Create `client/src/pages/WebsiteBuilder.tsx`
+- Use stepper component from shadcn/ui
+- Integrate with AI providers for code generation
+
+#### Priority 4: Stripe Subscriptions UI
+- [ ] Build pricing page with plan tiers
+- [ ] Implement checkout flow
+- [ ] Add subscription management in Settings
+- [ ] Promo code redemption UI
+
+**Relevant files:**
+- `server/services/stripeClient.ts` - Stripe API ready
+- `shared/schema.ts` - `subscriptions`, `promoCodes`, `promoRedemptions` tables ready
+- API routes exist: `/api/stripe/products`, `/api/stripe/checkout`, etc.
+
+---
+
+## 🏗️ SYSTEM ARCHITECTURE
 
 ### Frontend Architecture
 - **Framework**: React 18 with TypeScript
@@ -16,65 +152,88 @@ Preferred communication style: Simple, everyday language.
 - **State Management**: TanStack Query (React Query) for server state
 - **Styling**: Tailwind CSS v4 with shadcn/ui component library (New York style)
 - **Animations**: Framer Motion for UI animations
-- **Build Tool**: Vite with custom plugins for meta images and Replit integration
-
-The frontend follows a page-based structure with shared dashboard layout. Pages include Dashboard (Command Deck), Coding Studio, Agents, Storage, Integrations, and Settings.
+- **Build Tool**: Vite with custom plugins
 
 ### Backend Architecture
 - **Framework**: Express.js with TypeScript
 - **Database**: PostgreSQL with Drizzle ORM
-- **Session Management**: express-session with connect-pg-simple for PostgreSQL session storage
-- **Security**: Helmet for security headers, bcrypt for password hashing, CORS configuration
-- **Rate Limiting**: express-rate-limit with separate limits for auth, API, and agent execution endpoints
+- **Session Management**: express-session with connect-pg-simple
+- **Security**: Helmet, bcrypt, CORS, rate limiting
 
-### Authentication & Authorization
-- Session-based authentication stored in PostgreSQL
-- Role-Based Access Control (RBAC) with four roles: owner, admin, member, viewer
-- Middleware functions for route protection: `requireAuth`, `requireRole`, `attachUser`
+### Key Directories
+```
+├── client/src/
+│   ├── pages/          # React page components
+│   ├── components/     # Reusable UI components
+│   └── lib/            # Utilities and API client
+├── server/
+│   ├── services/       # Integration clients (Google Drive, Stripe, etc.)
+│   ├── routes.ts       # All API endpoints
+│   ├── storage.ts      # Database operations
+│   └── index.ts        # Server entry point
+└── shared/
+    └── schema.ts       # Drizzle database schema
+```
 
-### Multi-Agent Orchestration
-- Event-driven orchestrator queue system with configurable concurrency
-- Provider adapter pattern for AI services with graceful fallbacks when API keys are missing
-- Server-Sent Events (SSE) for real-time agent run streaming
-- Handoff protocol for agent-to-agent communication with structured summaries, decisions, tasks, and artifacts
+### API Routes Reference
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/google-drive/*` | GET/POST/DELETE | Google Drive operations |
+| `/api/onedrive/*` | GET/POST/DELETE | OneDrive operations |
+| `/api/notion/*` | GET/POST/PATCH/DELETE | Notion pages/databases |
+| `/api/stripe/*` | GET/POST/DELETE | Stripe products/checkout/subscriptions |
+| `/api/roundtable/*` | GET/POST | Multi-AI discussion sessions |
+| `/api/auth/*` | POST | Login/signup/logout |
 
-### Cost Governance
-- Budget tracking at daily and monthly intervals per organization
-- Middleware (`checkBudget`) blocks requests when budgets are exceeded
-- Audit logging for budget violations
+---
 
-### Data Model
-Key entities managed through Drizzle ORM:
-- Users, Organizations, Projects (hierarchical structure)
-- Integrations and Secret References (for third-party service connections)
-- Agent Runs and Messages (for AI orchestration tracking)
-- Memory Items (centralized memory with keyword search)
-- Audit Logs and Budgets (for governance)
+## 🔧 DEVELOPMENT COMMANDS
 
-### Build System
-- Development: Vite dev server with HMR for frontend, tsx for backend
-- Production: Custom build script using esbuild for server bundling with allowlist for external dependencies, Vite for frontend
+```bash
+npm run dev          # Start development server (port 5000)
+npm run db:push      # Sync database schema changes
+npm run build        # Build for production
+```
 
-## External Dependencies
+---
 
-### Database
-- **PostgreSQL**: Primary database, connection via `DATABASE_URL` environment variable
-- **Drizzle ORM**: Type-safe database queries with schema defined in `shared/schema.ts`
+## 📝 INSTRUCTIONS FOR AI ASSISTANTS (Codex, Copilot, etc.)
 
-### AI Providers (Optional)
-- OpenAI (`OPENAI_API_KEY`)
-- Anthropic/Claude (`ANTHROPIC_API_KEY`)
-- xAI/Grok (`XAI_API_KEY`)
-- Perplexity (`PERPLEXITY_API_KEY`)
+When working on this codebase:
 
-### Third-Party Integrations (Optional)
-- GitHub (`GITHUB_TOKEN`) - Repository operations with branch-first safety
-- Google Drive (`GOOGLE_DRIVE_CLIENT_ID`, `GOOGLE_DRIVE_CLIENT_SECRET`)
-- Dropbox (`DROPBOX_ACCESS_TOKEN`)
-- Notion (`NOTION_TOKEN`)
-- Zapier - Workflow automation
+1. **Database changes**: Edit `shared/schema.ts`, then run `npm run db:push`
+2. **New API routes**: Add to `server/routes.ts` using existing patterns
+3. **New pages**: Add to `client/src/pages/` and register in `client/src/App.tsx`
+4. **Integration clients**: Follow pattern in `server/services/` - use dynamic imports
+5. **Don't hardcode secrets**: Use Replit Secrets tab or connectors
+6. **Test IDs**: Add `data-testid` to interactive elements
 
-### Required Environment Variables
-- `DATABASE_URL` - PostgreSQL connection string
-- `SESSION_SECRET` - Session encryption key (required in production)
-- `APP_ORIGIN` - Application URL for CORS (required in production)
+### Code Patterns to Follow
+
+**Adding a new API route:**
+```typescript
+app.get("/api/example", requireAuth, apiLimiter, async (req, res) => {
+  try {
+    // Your logic here
+    res.json({ data });
+  } catch (error) {
+    res.status(400).json({ error: error instanceof Error ? error.message : "Failed" });
+  }
+});
+```
+
+**Using an integration client:**
+```typescript
+const { listDriveFiles } = await import("./services/googleDriveClient");
+const files = await listDriveFiles();
+```
+
+**Adding to database schema:**
+```typescript
+export const newTable = pgTable("new_table", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  // ... fields
+});
+export const insertNewTableSchema = createInsertSchema(newTable).omit({ id: true });
+export type NewTable = typeof newTable.$inferSelect;
+```

@@ -390,3 +390,122 @@ export const insertAgentProposalSchema = createInsertSchema(agentProposals).omit
 
 export type InsertAgentProposal = z.infer<typeof insertAgentProposalSchema>;
 export type AgentProposal = typeof agentProposals.$inferSelect;
+
+// ===== WORKSPACES =====
+// User workspaces for project organization
+export const workspaces = pgTable("workspaces", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orgId: varchar("org_id").notNull().references(() => orgs.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  type: text("type", { enum: ["code", "design", "docs", "general"] }).notNull().default("general"),
+  settings: jsonb("settings"), // Workspace-specific settings
+  createdBy: varchar("created_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertWorkspaceSchema = createInsertSchema(workspaces).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertWorkspace = z.infer<typeof insertWorkspaceSchema>;
+export type Workspace = typeof workspaces.$inferSelect;
+
+// ===== SUBSCRIPTIONS =====
+// User subscription tracking (linked to Stripe)
+export const subscriptions = pgTable("subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orgId: varchar("org_id").notNull().references(() => orgs.id, { onDelete: "cascade" }),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  stripePriceId: text("stripe_price_id"),
+  plan: text("plan", { enum: ["free", "starter", "pro", "enterprise"] }).notNull().default("free"),
+  status: text("status", { enum: ["active", "canceled", "past_due", "trialing", "paused"] }).notNull().default("active"),
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  cancelAtPeriodEnd: text("cancel_at_period_end").default("false"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+export type Subscription = typeof subscriptions.$inferSelect;
+
+// ===== PROMO CODES =====
+// Promotional codes for discounts
+export const promoCodes = pgTable("promo_codes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  code: text("code").notNull().unique(),
+  discountType: text("discount_type", { enum: ["percent", "fixed"] }).notNull(),
+  discountValue: decimal("discount_value", { precision: 10, scale: 2 }).notNull(),
+  maxUses: integer("max_uses"),
+  usedCount: integer("used_count").notNull().default(0),
+  validFrom: timestamp("valid_from").notNull().defaultNow(),
+  validUntil: timestamp("valid_until"),
+  applicablePlans: text("applicable_plans").array(), // Which plans this code works for
+  createdBy: varchar("created_by").references(() => users.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertPromoCodeSchema = createInsertSchema(promoCodes).omit({
+  id: true,
+  usedCount: true,
+  createdAt: true,
+});
+
+export type InsertPromoCode = z.infer<typeof insertPromoCodeSchema>;
+export type PromoCode = typeof promoCodes.$inferSelect;
+
+// ===== PROMO CODE REDEMPTIONS =====
+// Track who used which promo code
+export const promoRedemptions = pgTable("promo_redemptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  promoCodeId: varchar("promo_code_id").notNull().references(() => promoCodes.id, { onDelete: "cascade" }),
+  orgId: varchar("org_id").notNull().references(() => orgs.id, { onDelete: "cascade" }),
+  subscriptionId: varchar("subscription_id").references(() => subscriptions.id, { onDelete: "set null" }),
+  redeemedAt: timestamp("redeemed_at").notNull().defaultNow(),
+});
+
+export const insertPromoRedemptionSchema = createInsertSchema(promoRedemptions).omit({
+  id: true,
+  redeemedAt: true,
+});
+
+export type InsertPromoRedemption = z.infer<typeof insertPromoRedemptionSchema>;
+export type PromoRedemption = typeof promoRedemptions.$inferSelect;
+
+// ===== STORAGE FILES =====
+// Track files across storage providers
+export const storageFiles = pgTable("storage_files", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orgId: varchar("org_id").notNull().references(() => orgs.id, { onDelete: "cascade" }),
+  workspaceId: varchar("workspace_id").references(() => workspaces.id, { onDelete: "set null" }),
+  provider: text("provider", { enum: ["google_drive", "onedrive", "notion", "github", "local"] }).notNull(),
+  externalId: text("external_id").notNull(), // Provider's file ID
+  name: text("name").notNull(),
+  mimeType: text("mime_type"),
+  size: integer("size"),
+  path: text("path"),
+  webUrl: text("web_url"),
+  metadata: jsonb("metadata"),
+  syncedAt: timestamp("synced_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertStorageFileSchema = createInsertSchema(storageFiles).omit({
+  id: true,
+  syncedAt: true,
+  createdAt: true,
+});
+
+export type InsertStorageFile = z.infer<typeof insertStorageFileSchema>;
+export type StorageFile = typeof storageFiles.$inferSelect;
