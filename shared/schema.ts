@@ -278,3 +278,55 @@ export const insertDecisionTraceSchema = createInsertSchema(decisionTraces).omit
 
 export type InsertDecisionTrace = z.infer<typeof insertDecisionTraceSchema>;
 export type DecisionTrace = typeof decisionTraces.$inferSelect;
+
+// Roundtable Sessions - multi-AI conversation sessions
+export const roundtableSessions = pgTable("roundtable_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orgId: varchar("org_id").notNull().references(() => orgs.id, { onDelete: "cascade" }),
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: "set null" }),
+  title: text("title").notNull(),
+  topic: text("topic"), // Discussion topic for AIs to focus on
+  status: text("status", { enum: ["active", "paused", "completed"] }).notNull().default("active"),
+  orchestrationMode: text("orchestration_mode", { enum: ["round_robin", "topic_based", "free_form"] }).notNull().default("round_robin"),
+  maxTurns: integer("max_turns").default(20), // Prevent infinite loops
+  currentTurn: integer("current_turn").notNull().default(0),
+  activeProviders: text("active_providers").array(), // Which AI providers are in this session
+  createdBy: varchar("created_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertRoundtableSessionSchema = createInsertSchema(roundtableSessions).omit({
+  id: true,
+  currentTurn: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertRoundtableSession = z.infer<typeof insertRoundtableSessionSchema>;
+export type RoundtableSession = typeof roundtableSessions.$inferSelect;
+
+// Roundtable Messages - conversation log with signed messages
+export const roundtableMessages = pgTable("roundtable_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull().references(() => roundtableSessions.id, { onDelete: "cascade" }),
+  senderType: text("sender_type", { enum: ["user", "ai", "system"] }).notNull(),
+  senderId: varchar("sender_id"), // User ID for users, null for AI/system
+  provider: text("provider"), // AI provider name (openai, anthropic, etc.)
+  model: text("model"), // Specific model used (gpt-4o, claude-3, etc.)
+  content: text("content").notNull(),
+  signature: text("signature"), // AI-generated signature/sign-off
+  sequenceNumber: integer("sequence_number").notNull(),
+  tokensUsed: integer("tokens_used"),
+  responseTimeMs: integer("response_time_ms"),
+  metadata: jsonb("metadata"), // Additional context (reasoning, confidence, etc.)
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertRoundtableMessageSchema = createInsertSchema(roundtableMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertRoundtableMessage = z.infer<typeof insertRoundtableMessageSchema>;
+export type RoundtableMessage = typeof roundtableMessages.$inferSelect;

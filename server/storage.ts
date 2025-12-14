@@ -14,8 +14,10 @@ import {
   userCredentials, type UserCredential, type InsertUserCredential,
   usageRecords, type UsageRecord, type InsertUsageRecord,
   decisionTraces, type DecisionTrace, type InsertDecisionTrace,
+  roundtableSessions, type RoundtableSession, type InsertRoundtableSession,
+  roundtableMessages, type RoundtableMessage, type InsertRoundtableMessage,
 } from "@shared/schema";
-import { eq, and, desc, like, sql, gte } from "drizzle-orm";
+import { eq, and, desc, like, sql, gte, max } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -98,6 +100,17 @@ export interface IStorage {
   getPendingApprovals(orgId?: string): Promise<DecisionTrace[]>;
   approveDecision(id: string, userId: string): Promise<DecisionTrace | undefined>;
   rejectDecision(id: string, userId: string, reason: string): Promise<DecisionTrace | undefined>;
+
+  // Roundtable Sessions
+  createRoundtableSession(data: InsertRoundtableSession): Promise<RoundtableSession>;
+  getRoundtableSession(id: string): Promise<RoundtableSession | undefined>;
+  getRoundtableSessions(orgId: string): Promise<RoundtableSession[]>;
+  updateRoundtableSession(id: string, updates: Partial<RoundtableSession>): Promise<RoundtableSession>;
+
+  // Roundtable Messages
+  createRoundtableMessage(data: InsertRoundtableMessage): Promise<RoundtableMessage>;
+  getRoundtableMessages(sessionId: string): Promise<RoundtableMessage[]>;
+  getNextSequenceNumber(sessionId: string): Promise<number>;
 }
 
 export class DbStorage implements IStorage {
@@ -504,6 +517,56 @@ export class DbStorage implements IStorage {
       .where(eq(decisionTraces.id, id))
       .returning();
     return updated;
+  }
+
+  // Roundtable Sessions
+  async createRoundtableSession(data: InsertRoundtableSession): Promise<RoundtableSession> {
+    const [session] = await db.insert(roundtableSessions).values(data).returning();
+    return session;
+  }
+
+  async getRoundtableSession(id: string): Promise<RoundtableSession | undefined> {
+    const [session] = await db.select().from(roundtableSessions).where(eq(roundtableSessions.id, id));
+    return session;
+  }
+
+  async getRoundtableSessions(orgId: string): Promise<RoundtableSession[]> {
+    return db
+      .select()
+      .from(roundtableSessions)
+      .where(eq(roundtableSessions.orgId, orgId))
+      .orderBy(desc(roundtableSessions.createdAt));
+  }
+
+  async updateRoundtableSession(id: string, updates: Partial<RoundtableSession>): Promise<RoundtableSession> {
+    const [updated] = await db
+      .update(roundtableSessions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(roundtableSessions.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Roundtable Messages
+  async createRoundtableMessage(data: InsertRoundtableMessage): Promise<RoundtableMessage> {
+    const [message] = await db.insert(roundtableMessages).values(data).returning();
+    return message;
+  }
+
+  async getRoundtableMessages(sessionId: string): Promise<RoundtableMessage[]> {
+    return db
+      .select()
+      .from(roundtableMessages)
+      .where(eq(roundtableMessages.sessionId, sessionId))
+      .orderBy(roundtableMessages.sequenceNumber);
+  }
+
+  async getNextSequenceNumber(sessionId: string): Promise<number> {
+    const result = await db
+      .select({ maxSeq: max(roundtableMessages.sequenceNumber) })
+      .from(roundtableMessages)
+      .where(eq(roundtableMessages.sessionId, sessionId));
+    return (result[0]?.maxSeq ?? 0) + 1;
   }
 }
 
