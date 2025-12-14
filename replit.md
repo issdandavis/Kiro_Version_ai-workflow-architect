@@ -133,15 +133,23 @@ All integrations are managed securely through **Replit's Secrets tab** (lock ico
 - Integrate with AI providers for code generation
 
 #### Priority 4: Stripe Subscriptions UI
-- [ ] Build pricing page with plan tiers
-- [ ] Implement checkout flow
+- [x] Build pricing page with plan tiers (Shop.tsx updated!)
+- [x] Create Stripe products ($49 lifetime, $9/month)
+- [x] Implement checkout flow
 - [ ] Add subscription management in Settings
 - [ ] Promo code redemption UI
 
+**Stripe Products Created:**
+| Product | Price ID | Amount |
+|---------|----------|--------|
+| AI Orchestration Hub - Lifetime Access | price_1SeMsREbFOchx4qYSgaxCHwo | $49 one-time |
+| AI Orchestration Hub - Monthly | price_1SeMsSEbFOchx4qYrHFo6ghf | $9/month |
+
 **Relevant files:**
-- `server/services/stripeClient.ts` - Stripe API ready
+- `client/src/pages/Shop.tsx` - Pricing page with Stripe checkout
+- `server/services/stripeClient.ts` - Stripe API (createStripeProduct, createStripePrice added)
 - `shared/schema.ts` - `subscriptions`, `promoCodes`, `promoRedemptions` tables ready
-- API routes exist: `/api/stripe/products`, `/api/stripe/checkout`, etc.
+- API routes exist: `/api/stripe/products`, `/api/stripe/checkout`, `/api/stripe/product`, `/api/stripe/price`
 
 ---
 
