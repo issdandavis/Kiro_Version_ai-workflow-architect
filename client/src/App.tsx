@@ -9,6 +9,11 @@ import PublicHome from "@/pages/PublicHome";
 import Shop from "@/pages/Shop";
 import Storage from "@/pages/Storage";
 import CodingStudio from "@/pages/CodingStudio";
+import Settings from "@/pages/Settings";
+import Integrations from "@/pages/Integrations";
+import Agents from "@/pages/Agents";
+import Login from "@/pages/Login";
+import Signup from "@/pages/Signup";
 
 function Router() {
   return (
@@ -16,15 +21,16 @@ function Router() {
       {/* Public Routes */}
       <Route path="/" component={PublicHome} />
       <Route path="/shop" component={Shop} />
+      <Route path="/login" component={Login} />
+      <Route path="/signup" component={Signup} />
 
       {/* Backend / Dashboard Routes */}
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/storage" component={Storage} />
       <Route path="/studio" component={CodingStudio} />
-      
-      {/* Redirects for demo purposes */}
-      <Route path="/agents" component={Dashboard} />
-      <Route path="/integrations" component={Dashboard} />
+      <Route path="/settings" component={Settings} />
+      <Route path="/integrations" component={Integrations} />
+      <Route path="/agents" component={Agents} />
       
       <Route component={NotFound} />
     </Switch>
