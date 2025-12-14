@@ -2506,5 +2506,67 @@ Format your response as JSON with the following structure:
     }
   });
 
+  // ===== GEMINI AI ROUTES =====
+
+  app.post("/api/gemini/chat", requireAuth, apiLimiter, async (req: Request, res: Response) => {
+    try {
+      const { prompt, model, messages } = z.object({
+        prompt: z.string().min(1).optional(),
+        model: z.string().default("gemini-2.5-flash"),
+        messages: z.array(z.object({
+          role: z.string(),
+          content: z.string(),
+        })).optional(),
+      }).parse(req.body);
+
+      const { generateText, chat, isGeminiConfigured } = await import("./services/geminiClient");
+      
+      if (!isGeminiConfigured()) {
+        return res.status(400).json({ error: "Gemini AI is not configured" });
+      }
+
+      let response: string;
+      if (messages && messages.length > 0) {
+        response = await chat(messages, model);
+      } else if (prompt) {
+        response = await generateText(prompt, model);
+      } else {
+        return res.status(400).json({ error: "Either prompt or messages is required" });
+      }
+
+      res.json({ content: response, model });
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : "Gemini chat failed" });
+    }
+  });
+
+  app.post("/api/gemini/image", requireAuth, apiLimiter, async (req: Request, res: Response) => {
+    try {
+      const { prompt } = z.object({
+        prompt: z.string().min(1, "Image prompt is required"),
+      }).parse(req.body);
+
+      const { generateImage, isGeminiConfigured } = await import("./services/geminiClient");
+      
+      if (!isGeminiConfigured()) {
+        return res.status(400).json({ error: "Gemini AI is not configured" });
+      }
+
+      const imageDataUrl = await generateImage(prompt);
+      res.json({ image: imageDataUrl });
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : "Image generation failed" });
+    }
+  });
+
+  app.get("/api/gemini/status", requireAuth, apiLimiter, async (req: Request, res: Response) => {
+    try {
+      const { isGeminiConfigured } = await import("./services/geminiClient");
+      res.json({ configured: isGeminiConfigured() });
+    } catch (error) {
+      res.json({ configured: false });
+    }
+  });
+
   return httpServer;
 }
