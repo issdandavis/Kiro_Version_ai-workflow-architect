@@ -337,6 +337,26 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/vault/credentials/test", requireAuth, apiLimiter, async (req: Request, res: Response) => {
+    try {
+      const { provider, apiKey } = z.object({
+        provider: z.string(),
+        apiKey: z.string().min(10, "API key too short"),
+      }).parse(req.body);
+
+      const { validateApiKeyFormat, testApiKey } = await import("./services/vault");
+
+      if (!validateApiKeyFormat(provider, apiKey)) {
+        return res.status(400).json({ valid: false, error: `Invalid API key format for ${provider}` });
+      }
+
+      const result = await testApiKey(provider, apiKey);
+      res.json(result);
+    } catch (error) {
+      res.status(400).json({ valid: false, error: error instanceof Error ? error.message : "Test failed" });
+    }
+  });
+
   app.get("/api/vault/usage", requireAuth, apiLimiter, async (req: Request, res: Response) => {
     try {
       const orgId = req.session.orgId;
