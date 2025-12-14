@@ -1,7 +1,28 @@
 import express, { type Request, Response, NextFunction } from "express";
+import session from "express-session";
+import helmet from "helmet";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+
+// Environment validation
+const requiredEnvVars = ["DATABASE_URL"];
+const productionEnvVars = ["SESSION_SECRET", "APP_ORIGIN"];
+
+if (process.env.NODE_ENV === "production") {
+  for (const envVar of [...requiredEnvVars, ...productionEnvVars]) {
+    if (!process.env[envVar]) {
+      throw new Error(`Required environment variable ${envVar} is not set`);
+    }
+  }
+} else {
+  for (const envVar of requiredEnvVars) {
+    if (!process.env[envVar]) {
+      throw new Error(`Required environment variable ${envVar} is not set`);
+    }
+  }
+}
 
 const app = express();
 const httpServer = createServer(app);
@@ -11,6 +32,34 @@ declare module "http" {
     rawBody: unknown;
   }
 }
+
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: false, // Vite handles this in dev
+  crossOriginEmbedderPolicy: false,
+}));
+
+// CORS configuration
+const APP_ORIGIN = process.env.APP_ORIGIN || "http://localhost:5000";
+app.use(cors({
+  origin: APP_ORIGIN,
+  credentials: true,
+}));
+
+// Session configuration
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "dev-secret-change-in-production",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      sameSite: "lax",
+    },
+  })
+);
 
 app.use(
   express.json({
@@ -92,7 +141,9 @@ app.use((req, res, next) => {
       reusePort: true,
     },
     () => {
-      log(`serving on port ${port}`);
+      log(`🚀 Server ready on port ${port}`);
+      log(`Environment: ${process.env.NODE_ENV || "development"}`);
+      log(`Database: ${process.env.DATABASE_URL ? "Connected" : "Not configured"}`);
     },
   );
 })();
