@@ -24,6 +24,7 @@ import {
   workflowRuns, type WorkflowRun, type InsertWorkflowRun,
   zapierWebhooks, type ZapierWebhook, type InsertZapierWebhook,
   zapierWebhookLogs, type ZapierWebhookLog, type InsertZapierWebhookLog,
+  workspaces, type Workspace, type InsertWorkspace,
 } from "@shared/schema";
 import { eq, and, desc, like, sql, gte, max } from "drizzle-orm";
 
@@ -170,6 +171,13 @@ export interface IStorage {
   deleteZapierWebhook(id: string): Promise<void>;
   createZapierWebhookLog(data: InsertZapierWebhookLog): Promise<ZapierWebhookLog>;
   getZapierWebhookLogs(webhookId: string, limit?: number): Promise<ZapierWebhookLog[]>;
+
+  // Workspaces
+  getWorkspacesByOrg(orgId: string): Promise<Workspace[]>;
+  getWorkspace(id: string): Promise<Workspace | undefined>;
+  createWorkspace(data: InsertWorkspace): Promise<Workspace>;
+  updateWorkspace(id: string, data: Partial<InsertWorkspace>): Promise<Workspace | undefined>;
+  deleteWorkspace(id: string): Promise<boolean>;
 }
 
 export interface ExportData {
@@ -990,6 +998,39 @@ export class DbStorage implements IStorage {
       .where(eq(zapierWebhookLogs.webhookId, webhookId))
       .orderBy(desc(zapierWebhookLogs.deliveredAt))
       .limit(limit);
+  }
+
+  // Workspaces
+  async getWorkspacesByOrg(orgId: string): Promise<Workspace[]> {
+    return db
+      .select()
+      .from(workspaces)
+      .where(eq(workspaces.orgId, orgId))
+      .orderBy(desc(workspaces.createdAt));
+  }
+
+  async getWorkspace(id: string): Promise<Workspace | undefined> {
+    const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id));
+    return workspace;
+  }
+
+  async createWorkspace(data: InsertWorkspace): Promise<Workspace> {
+    const [workspace] = await db.insert(workspaces).values(data).returning();
+    return workspace;
+  }
+
+  async updateWorkspace(id: string, data: Partial<InsertWorkspace>): Promise<Workspace | undefined> {
+    const [workspace] = await db
+      .update(workspaces)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(workspaces.id, id))
+      .returning();
+    return workspace;
+  }
+
+  async deleteWorkspace(id: string): Promise<boolean> {
+    const result = await db.delete(workspaces).where(eq(workspaces.id, id));
+    return true;
   }
 }
 

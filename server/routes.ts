@@ -12,7 +12,7 @@ import { createMcpRouter } from "./mcp";
 import { getZapierMcpClient, testZapierMcpConnection } from "./services/zapierMcpClient";
 import { dispatchEvent, generateSecretKey, getSampleData, SUPPORTED_EVENTS, type ZapierEventType } from "./services/zapierService";
 import { z } from "zod";
-import { insertUserSchema, insertOrgSchema, insertProjectSchema, insertIntegrationSchema, insertMemoryItemSchema } from "@shared/schema";
+import { insertUserSchema, insertOrgSchema, insertProjectSchema, insertIntegrationSchema, insertMemoryItemSchema, insertWorkspaceSchema } from "@shared/schema";
 import { getProviderAdapter } from "./services/providerAdapters";
 import crypto from "crypto";
 
@@ -863,6 +863,134 @@ export async function registerRoutes(
       res.json(project);
     } catch (error) {
       res.status(400).json({ error: error instanceof Error ? error.message : "Invalid request" });
+    }
+  });
+
+  // ===== WORKSPACE ROUTES =====
+
+  app.get("/api/workspaces", requireAuth, apiLimiter, async (req: Request, res: Response) => {
+    try {
+      const orgId = req.session.orgId;
+      if (!orgId) {
+        return res.status(400).json({ error: "No organization set" });
+      }
+
+      const workspaces = await storage.getWorkspacesByOrg(orgId);
+      res.json(workspaces);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch workspaces" });
+    }
+  });
+
+  app.get("/api/workspaces/:id", requireAuth, apiLimiter, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const workspace = await storage.getWorkspace(id);
+      
+      if (!workspace) {
+        return res.status(404).json({ error: "Workspace not found" });
+      }
+
+      if (workspace.orgId !== req.session.orgId) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      res.json(workspace);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch workspace" });
+    }
+  });
+
+  app.post("/api/workspaces", requireAuth, apiLimiter, async (req: Request, res: Response) => {
+    try {
+      const orgId = req.session.orgId;
+      const userId = req.session.userId;
+      if (!orgId || !userId) {
+        return res.status(400).json({ error: "No organization or user context" });
+      }
+
+      const data = insertWorkspaceSchema.parse({
+        ...req.body,
+        orgId,
+        createdBy: userId,
+      });
+
+      const workspace = await storage.createWorkspace(data);
+      
+      await storage.createAuditLog({
+        orgId,
+        userId,
+        action: "workspace_created",
+        target: workspace.id,
+        detailJson: { name: workspace.name, type: workspace.type },
+      });
+
+      res.status(201).json(workspace);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Invalid request" });
+    }
+  });
+
+  app.patch("/api/workspaces/:id", requireAuth, apiLimiter, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const workspace = await storage.getWorkspace(id);
+      
+      if (!workspace) {
+        return res.status(404).json({ error: "Workspace not found" });
+      }
+
+      if (workspace.orgId !== req.session.orgId) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      const updateData = insertWorkspaceSchema.partial().parse(req.body);
+      const updated = await storage.updateWorkspace(id, updateData);
+
+      if (!updated) {
+        return res.status(404).json({ error: "Workspace not found" });
+      }
+
+      await storage.createAuditLog({
+        orgId: req.session.orgId!,
+        userId: req.session.userId || null,
+        action: "workspace_updated",
+        target: id,
+        detailJson: { updates: Object.keys(updateData) },
+      });
+
+      res.json(updated);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Invalid request" });
+    }
+  });
+
+  app.delete("/api/workspaces/:id", requireAuth, apiLimiter, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const workspace = await storage.getWorkspace(id);
+      
+      if (!workspace) {
+        return res.status(404).json({ error: "Workspace not found" });
+      }
+
+      if (workspace.orgId !== req.session.orgId) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      await storage.deleteWorkspace(id);
+
+      await storage.createAuditLog({
+        orgId: req.session.orgId!,
+        userId: req.session.userId || null,
+        action: "workspace_deleted",
+        target: id,
+        detailJson: { name: workspace.name },
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete workspace" });
     }
   });
 
