@@ -17,6 +17,7 @@ import { insertUserSchema, insertOrgSchema, insertProjectSchema, insertIntegrati
 import { getProviderAdapter } from "./services/providerAdapters";
 import { getAvailableProviders } from "./services/aiPriorityManager";
 import crypto from "crypto";
+import shopifyRouter from "./shopify";
 
 const VERSION = "1.0.0";
 
@@ -44,6 +45,9 @@ export async function registerRoutes(
 
   // MCP Protocol endpoint
   app.use("/mcp", createMcpRouter());
+
+  // Shopify integration routes
+  app.use("/api/shopify", shopifyRouter);
 
   // Health endpoint
   app.get("/api/health", (req, res) => {

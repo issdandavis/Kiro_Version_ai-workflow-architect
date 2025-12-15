@@ -27,6 +27,8 @@ import Workflows from "@/pages/Workflows";
 import Workspaces from "@/pages/Workspaces";
 import Gallery from "@/pages/Gallery";
 import WebsiteBuilder from "@/pages/WebsiteBuilder";
+import ShopifyOnboarding from "@/pages/ShopifyOnboarding";
+import ShopifyDashboard from "@/pages/ShopifyDashboard";
 
 const PUBLIC_ROUTES = ["/", "/shop", "/login", "/signup", "/gallery"];
 
@@ -59,6 +61,10 @@ function Router() {
       <Route path="/workspaces" component={Workspaces} />
       <Route path="/website-builder" component={WebsiteBuilder} />
       
+      {/* Shopify Routes */}
+      <Route path="/shopify/onboarding" component={ShopifyOnboarding} />
+      <Route path="/shopify/dashboard" component={ShopifyDashboard} />
+
       <Route component={NotFound} />
     </Switch>
   );
