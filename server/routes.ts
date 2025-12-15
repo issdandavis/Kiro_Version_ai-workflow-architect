@@ -3786,6 +3786,147 @@ Format your response as JSON with the following structure:
     }
   });
 
+  // ===== SUBSCRIPTION ROUTES =====
+
+  app.get("/api/subscription", requireAuth, apiLimiter, async (req: Request, res: Response) => {
+    try {
+      const orgId = req.session.orgId;
+      if (!orgId) {
+        return res.status(400).json({ error: "No organization set" });
+      }
+
+      const subscription = await storage.getSubscriptionByOrgId(orgId);
+      
+      if (!subscription) {
+        return res.json({
+          plan: "free",
+          status: "active",
+          stripeCustomerId: null,
+          stripeSubscriptionId: null,
+          currentPeriodEnd: null,
+        });
+      }
+
+      res.json({
+        id: subscription.id,
+        plan: subscription.plan,
+        status: subscription.status,
+        stripeCustomerId: subscription.stripeCustomerId,
+        stripeSubscriptionId: subscription.stripeSubscriptionId,
+        currentPeriodEnd: subscription.currentPeriodEnd,
+        cancelAtPeriodEnd: subscription.cancelAtPeriodEnd === "true",
+      });
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : "Failed to fetch subscription" });
+    }
+  });
+
+  app.post("/api/subscription/portal", requireAuth, apiLimiter, async (req: Request, res: Response) => {
+    try {
+      const orgId = req.session.orgId;
+      if (!orgId) {
+        return res.status(400).json({ error: "No organization set" });
+      }
+
+      const subscription = await storage.getSubscriptionByOrgId(orgId);
+      
+      if (!subscription || !subscription.stripeCustomerId) {
+        return res.status(400).json({ error: "No active subscription found. Please upgrade first." });
+      }
+
+      const { createStripePortalSession } = await import("./services/stripeClient");
+      const returnUrl = `${req.protocol}://${req.get("host")}/settings`;
+      const session = await createStripePortalSession(subscription.stripeCustomerId, returnUrl);
+
+      await storage.createAuditLog({
+        orgId,
+        userId: req.session.userId || null,
+        action: "subscription_portal_opened",
+        target: "stripe",
+        detailJson: { subscriptionId: subscription.id },
+      });
+
+      res.json({ url: session.url });
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : "Failed to create portal session" });
+    }
+  });
+
+  // ===== PROMO CODE ROUTES =====
+
+  app.post("/api/promo/redeem", requireAuth, apiLimiter, async (req: Request, res: Response) => {
+    try {
+      const { code } = z.object({
+        code: z.string().min(1).max(50),
+      }).parse(req.body);
+
+      const orgId = req.session.orgId;
+      const userId = req.session.userId;
+      if (!orgId || !userId) {
+        return res.status(400).json({ error: "No organization set" });
+      }
+
+      const promoCode = await storage.getPromoCodeByCode(code.toUpperCase());
+      
+      if (!promoCode) {
+        return res.status(404).json({ error: "Invalid promo code" });
+      }
+
+      const now = new Date();
+      if (promoCode.validFrom > now) {
+        return res.status(400).json({ error: "This promo code is not yet valid" });
+      }
+      if (promoCode.validUntil && promoCode.validUntil < now) {
+        return res.status(400).json({ error: "This promo code has expired" });
+      }
+
+      if (promoCode.maxUses !== null && promoCode.usedCount >= promoCode.maxUses) {
+        return res.status(400).json({ error: "This promo code has reached its usage limit" });
+      }
+
+      const alreadyRedeemed = await storage.hasOrgRedeemedPromoCode(orgId, promoCode.id);
+      if (alreadyRedeemed) {
+        return res.status(400).json({ error: "You have already redeemed this promo code" });
+      }
+
+      const subscription = await storage.getSubscriptionByOrgId(orgId);
+      
+      await storage.createPromoRedemption({
+        promoCodeId: promoCode.id,
+        orgId,
+        subscriptionId: subscription?.id || null,
+      });
+      
+      await storage.incrementPromoCodeUsage(promoCode.id);
+
+      await storage.createAuditLog({
+        orgId,
+        userId,
+        action: "promo_code_redeemed",
+        target: promoCode.code,
+        detailJson: { 
+          discountType: promoCode.discountType,
+          discountValue: promoCode.discountValue,
+        },
+      });
+
+      const discountText = promoCode.discountType === "percent" 
+        ? `${promoCode.discountValue}% off`
+        : `$${promoCode.discountValue} off`;
+
+      res.json({ 
+        success: true, 
+        message: `Promo code applied! You get ${discountText}.`,
+        discount: {
+          type: promoCode.discountType,
+          value: promoCode.discountValue,
+        }
+      });
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Failed to redeem promo code" });
+    }
+  });
+
   // ===== ADMIN ROUTES =====
 
   const requireAdmin = async (req: Request, res: Response, next: Function) => {

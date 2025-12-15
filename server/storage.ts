@@ -25,8 +25,11 @@ import {
   zapierWebhooks, type ZapierWebhook, type InsertZapierWebhook,
   zapierWebhookLogs, type ZapierWebhookLog, type InsertZapierWebhookLog,
   workspaces, type Workspace, type InsertWorkspace,
+  subscriptions, type Subscription, type InsertSubscription,
+  promoCodes, type PromoCode, type InsertPromoCode,
+  promoRedemptions, type PromoRedemption, type InsertPromoRedemption,
 } from "@shared/schema";
-import { eq, and, desc, like, sql, gte, max } from "drizzle-orm";
+import { eq, and, desc, like, sql, gte, max, lte } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -178,6 +181,17 @@ export interface IStorage {
   createWorkspace(data: InsertWorkspace): Promise<Workspace>;
   updateWorkspace(id: string, data: Partial<InsertWorkspace>): Promise<Workspace | undefined>;
   deleteWorkspace(id: string): Promise<boolean>;
+
+  // Subscriptions
+  getSubscriptionByOrgId(orgId: string): Promise<Subscription | undefined>;
+  createSubscription(data: InsertSubscription): Promise<Subscription>;
+  updateSubscription(id: string, data: Partial<InsertSubscription>): Promise<Subscription | undefined>;
+
+  // Promo Codes
+  getPromoCodeByCode(code: string): Promise<PromoCode | undefined>;
+  createPromoRedemption(data: InsertPromoRedemption): Promise<PromoRedemption>;
+  incrementPromoCodeUsage(id: string): Promise<void>;
+  hasOrgRedeemedPromoCode(orgId: string, promoCodeId: string): Promise<boolean>;
 }
 
 export interface ExportData {
@@ -1031,6 +1045,52 @@ export class DbStorage implements IStorage {
   async deleteWorkspace(id: string): Promise<boolean> {
     const result = await db.delete(workspaces).where(eq(workspaces.id, id));
     return true;
+  }
+
+  // Subscriptions
+  async getSubscriptionByOrgId(orgId: string): Promise<Subscription | undefined> {
+    const [subscription] = await db.select().from(subscriptions).where(eq(subscriptions.orgId, orgId));
+    return subscription;
+  }
+
+  async createSubscription(data: InsertSubscription): Promise<Subscription> {
+    const [subscription] = await db.insert(subscriptions).values(data).returning();
+    return subscription;
+  }
+
+  async updateSubscription(id: string, data: Partial<InsertSubscription>): Promise<Subscription | undefined> {
+    const [subscription] = await db
+      .update(subscriptions)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(subscriptions.id, id))
+      .returning();
+    return subscription;
+  }
+
+  // Promo Codes
+  async getPromoCodeByCode(code: string): Promise<PromoCode | undefined> {
+    const [promoCode] = await db.select().from(promoCodes).where(eq(promoCodes.code, code.toUpperCase()));
+    return promoCode;
+  }
+
+  async createPromoRedemption(data: InsertPromoRedemption): Promise<PromoRedemption> {
+    const [redemption] = await db.insert(promoRedemptions).values(data).returning();
+    return redemption;
+  }
+
+  async incrementPromoCodeUsage(id: string): Promise<void> {
+    await db
+      .update(promoCodes)
+      .set({ usedCount: sql`${promoCodes.usedCount} + 1` })
+      .where(eq(promoCodes.id, id));
+  }
+
+  async hasOrgRedeemedPromoCode(orgId: string, promoCodeId: string): Promise<boolean> {
+    const [existing] = await db
+      .select()
+      .from(promoRedemptions)
+      .where(and(eq(promoRedemptions.orgId, orgId), eq(promoRedemptions.promoCodeId, promoCodeId)));
+    return !!existing;
   }
 }
 
