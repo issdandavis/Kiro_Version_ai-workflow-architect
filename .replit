@@ -55,4 +55,3 @@ defaultBucketID = "replit-objstore-21db36d0-795f-4b22-9f33-a13e336c3575"
 [userenv.production]
 
 [userenv.shared]
-APP_ORIGIN = "https://${REPLIT_DOMAINS}"

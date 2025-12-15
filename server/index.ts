@@ -6,27 +6,42 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 
-// Environment validation
-const requiredEnvVars = ["DATABASE_URL"];
-const productionEnvVars = ["SESSION_SECRET"];
+// Startup logging
+console.log("Starting server initialization...");
+console.log(`NODE_ENV: ${process.env.NODE_ENV || "development"}`);
+console.log(`PORT: ${process.env.PORT || "5000"}`);
 
 // Auto-detect APP_ORIGIN from Replit deployment domains if not set
 if (!process.env.APP_ORIGIN && process.env.REPLIT_DOMAINS) {
   const domains = process.env.REPLIT_DOMAINS.split(",");
   process.env.APP_ORIGIN = `https://${domains[0]}`;
+  console.log(`Auto-detected APP_ORIGIN: ${process.env.APP_ORIGIN}`);
+}
+
+// Environment validation - warn but don't crash
+const requiredEnvVars = ["DATABASE_URL"];
+const productionEnvVars = ["SESSION_SECRET"];
+
+const missingVars: string[] = [];
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    missingVars.push(envVar);
+  }
 }
 
 if (process.env.NODE_ENV === "production") {
-  for (const envVar of [...requiredEnvVars, ...productionEnvVars]) {
+  for (const envVar of productionEnvVars) {
     if (!process.env[envVar]) {
-      throw new Error(`Required environment variable ${envVar} is not set`);
+      missingVars.push(envVar);
     }
   }
-} else {
-  for (const envVar of requiredEnvVars) {
-    if (!process.env[envVar]) {
-      throw new Error(`Required environment variable ${envVar} is not set`);
-    }
+}
+
+if (missingVars.length > 0) {
+  console.error(`Missing required environment variables: ${missingVars.join(", ")}`);
+  if (process.env.NODE_ENV === "production") {
+    console.error("Cannot start in production without required variables");
+    process.exit(1);
   }
 }
 
@@ -115,41 +130,54 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  await registerRoutes(httpServer, app);
+  try {
+    console.log("Registering routes...");
+    await registerRoutes(httpServer, app);
+    console.log("Routes registered successfully");
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+      console.error(`Error ${status}: ${message}`);
+      res.status(status).json({ message });
+    });
 
-    res.status(status).json({ message });
-    throw err;
-  });
+    // Setup static serving or Vite dev server
+    if (process.env.NODE_ENV === "production") {
+      console.log("Setting up static file serving for production...");
+      serveStatic(app);
+    } else {
+      console.log("Setting up Vite dev server...");
+      const { setupVite } = await import("./vite");
+      await setupVite(httpServer, app);
+    }
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (process.env.NODE_ENV === "production") {
-    serveStatic(app);
-  } else {
-    const { setupVite } = await import("./vite");
-    await setupVite(httpServer, app);
+    // Test database connection
+    try {
+      const { testDatabaseConnection } = await import("./db");
+      const dbConnected = await testDatabaseConnection();
+      console.log(`Database connection test: ${dbConnected ? "SUCCESS" : "FAILED"}`);
+    } catch (dbErr) {
+      console.error("Database connection test error:", dbErr);
+    }
+
+    // ALWAYS serve the app on the port specified in the environment variable PORT
+    const port = parseInt(process.env.PORT || "5000", 10);
+    httpServer.listen(
+      {
+        port,
+        host: "0.0.0.0",
+        reusePort: true,
+      },
+      () => {
+        log(`🚀 Server ready on port ${port}`);
+        log(`Environment: ${process.env.NODE_ENV || "development"}`);
+        log(`Database: ${process.env.DATABASE_URL ? "Connected" : "Not configured"}`);
+        console.log(`Server listening on 0.0.0.0:${port}`);
+      },
+    );
+  } catch (startupError) {
+    console.error("Fatal startup error:", startupError);
+    process.exit(1);
   }
-
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      log(`🚀 Server ready on port ${port}`);
-      log(`Environment: ${process.env.NODE_ENV || "development"}`);
-      log(`Database: ${process.env.DATABASE_URL ? "Connected" : "Not configured"}`);
-    },
-  );
 })();
