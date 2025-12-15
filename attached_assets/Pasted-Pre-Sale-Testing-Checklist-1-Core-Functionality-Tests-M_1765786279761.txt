@@ -1,0 +1,207 @@
+Pre-Sale Testing Checklist
+1. Core Functionality Tests (Must Pass)
+Authentication & User Management
+
+ New user can sign up successfully
+
+ User can log in with correct credentials
+
+ User can log out and log back in
+
+ Password reset works (if implemented)
+
+ User session persists after page refresh
+
+AI Chat/Coding Assistant
+
+ AI responds to basic coding questions
+
+ Code suggestions are relevant and functional
+
+ Response time is under 5 seconds for simple queries
+
+ Error handling works (what happens if API fails?)
+
+ Chat history persists between sessions
+
+Stripe Integration (CRITICAL)
+
+ "Upgrade to Pro" button appears for free users
+
+ Stripe checkout opens correctly
+
+ Test payment goes through (use Stripe test mode)
+
+ User status updates to "Pro" after payment
+
+ Subscription shows in user's account/settings
+
+ Free user gets blocked after usage limit
+
+ Pro user has unlimited access
+
+Usage Limits
+
+ Free users see message counter (e.g., "45/50 messages remaining")
+
+ Counter decreases with each AI interaction
+
+ Free users get blocked at limit with upgrade prompt
+
+ Pro users don't see limits/counters
+
+2. Technical Stability Tests
+Performance
+
+ App loads in under 3 seconds
+
+ No console errors in browser dev tools (F12)
+
+ Database queries are efficient (check Replit logs)
+
+ AI API calls don't timeout
+
+ App handles 5+ concurrent users (simulate with browser tabs)
+
+Mobile Responsiveness
+
+ Test on actual phone or use Chrome DevTools mobile view
+
+ All buttons are clickable on mobile
+
+ Text is readable without zooming
+
+ Forms work on mobile keyboards
+
+ Stripe checkout works on mobile
+
+Error Handling
+
+ What happens if user enters invalid input?
+
+ What if Stripe payment fails?
+
+ What if AI API is down?
+
+ Are errors displayed clearly to users?
+
+ Does app crash or recover gracefully?
+
+3. Security & Data Tests
+Data Persistence
+
+ User data saves correctly to database
+
+ Chat history doesn't disappear
+
+ Subscription status persists
+
+ No data leaks between users (test with 2 accounts)
+
+Security Basics
+
+ Passwords are hashed (not visible in database)
+
+ Users can't access other users' data
+
+ API keys are in environment variables (not hardcoded)
+
+ HTTPS is enabled (check URL starts with https://)
+
+4. User Experience Tests
+First-Time User Flow
+
+ Is it clear what the app does?
+
+ Can a new user figure out how to use AI chat?
+
+ Is the upgrade path obvious?
+
+ Are there helpful tooltips/instructions?
+
+Value Demonstration
+
+ Does free tier show enough value to want Pro?
+
+ Is $20/month pricing clearly displayed?
+
+ Do users understand what Pro unlocks?
+
+Critical Pre-Sale Requirements
+Before you can ethically sell this, you MUST have:
+
+✅ Working Stripe test mode → then switch to live mode
+
+✅ Clear refund policy (Stripe requires this)
+
+✅ Terms of Service page (basic legal protection)
+
+✅ Privacy Policy (especially for EU users - GDPR)
+
+✅ Support email (how do users contact you?)
+
+✅ Cancellation process (users must be able to cancel subscriptions)
+
+How to Actually Test Right Now
+Option 1: Share Access with Me
+If you want help testing, you can:
+
+Make sure your Replit is public
+
+Share the live app URL (the .replit.app link)
+
+Create a test account for me with credentials
+
+I can then walk through the app and give specific feedback
+
+Option 2: Self-Test in 30 Minutes
+Right now, do this:
+
+Open incognito browser window
+
+Go through complete user journey:
+
+Sign up as new user
+
+Use AI chat 3-5 times
+
+Check message counter
+
+Try to upgrade to Pro
+
+Complete Stripe test payment
+
+Verify unlimited access works
+
+Try to break something (spam buttons, weird inputs)
+
+Check Replit logs for errors
+
+Open browser console (F12) and look for red errors
+
+Test on your phone
+
+Quick Wins Before Launch
+Add these to your app TODAY:
+
+text
+# Footer Links You Need:
+
+- Terms of Service (use a template from Termly.io - free)
+- Privacy Policy (use Termly.io template)
+- Contact: your-email@domain.com
+- "Powered by Stripe" badge (builds trust)
+What I Need to Help You Test
+Send me:
+
+Live app URL (https://your-app.replit.app)
+
+Test account credentials OR make signup public
+
+What features are currently working?
+
+What are you most worried about?
+
+Then I can give you specific, actionable feedback on what's broken vs. what's ready to sell.
+
+Bottom line: Don't launch until Stripe checkout works end-to-end in test mode. That's your #1 priority. Everything else is secondary.
