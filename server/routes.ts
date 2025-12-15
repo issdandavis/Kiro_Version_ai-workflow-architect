@@ -2795,6 +2795,7 @@ Format your response as JSON with the following structure:
 
       // Create the proposal with pending status
       const proposal = await storage.createAgentProposal({
+        orgId,
         suggestionId: suggestionId || null,
         filePath,
         originalContent,
