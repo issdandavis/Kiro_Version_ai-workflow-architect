@@ -9,6 +9,7 @@ import { retryService } from "./services/retryService";
 import { processGuideAgentRequest } from "./services/guideAgent";
 import { createMcpRouter } from "./mcp";
 import { getZapierMcpClient, testZapierMcpConnection } from "./services/zapierMcpClient";
+import { dispatchEvent, generateSecretKey, getSampleData, SUPPORTED_EVENTS, type ZapierEventType } from "./services/zapierService";
 import { z } from "zod";
 import { insertUserSchema, insertOrgSchema, insertProjectSchema, insertIntegrationSchema, insertMemoryItemSchema } from "@shared/schema";
 import { getProviderAdapter } from "./services/providerAdapters";
@@ -76,6 +77,13 @@ export async function registerRoutes(
       });
       req.session.orgId = org.id;
       req.session.userId = user.id;
+      
+      dispatchEvent(org.id, "user.created", {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt.toISOString(),
+      }).catch(err => console.error("[Zapier] Failed to dispatch user.created:", err));
       
       res.json({ id: user.id, email: user.email, role: user.role, orgId: org.id });
     } catch (error) {
@@ -210,6 +218,14 @@ export async function registerRoutes(
         target: provider,
         detailJson: { integrationId: integration.id },
       });
+
+      dispatchEvent(orgId, "integration.connected", {
+        id: integration.id,
+        orgId: integration.orgId,
+        provider: integration.provider,
+        status: integration.status,
+        createdAt: integration.createdAt.toISOString(),
+      }).catch(err => console.error("[Zapier] Failed to dispatch integration.connected:", err));
 
       res.json(integration);
     } catch (error) {
@@ -1045,6 +1061,355 @@ export async function registerRoutes(
     } catch (error) {
       res.status(400).json({ error: error instanceof Error ? error.message : "Tool call failed" });
     }
+  });
+
+  // ===== ZAPIER WEBHOOK SUBSCRIPTION ROUTES (REST Hooks) =====
+
+  app.post("/api/zapier/hooks/subscribe", validateApiKey, async (req: Request, res: Response) => {
+    try {
+      const orgId = (req as any).apiKeyOrgId;
+      if (!orgId) {
+        return res.status(400).json({ error: "No organization context" });
+      }
+
+      const { event, targetUrl, metadata } = z.object({
+        event: z.enum(SUPPORTED_EVENTS as [string, ...string[]]),
+        targetUrl: z.string().url(),
+        metadata: z.record(z.unknown()).optional(),
+      }).parse(req.body);
+
+      const secretKey = generateSecretKey();
+
+      const webhook = await storage.createZapierWebhook({
+        orgId,
+        event,
+        targetUrl,
+        isActive: true,
+        secretKey,
+        metadata: metadata || null,
+      });
+
+      await storage.createAuditLog({
+        orgId,
+        userId: null,
+        action: "zapier_webhook_subscribed",
+        target: event,
+        detailJson: { webhookId: webhook.id, targetUrl },
+      });
+
+      res.json({
+        id: webhook.id,
+        event: webhook.event,
+        createdAt: webhook.createdAt,
+      });
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Invalid request" });
+    }
+  });
+
+  app.delete("/api/zapier/hooks/:id", validateApiKey, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const orgId = (req as any).apiKeyOrgId;
+
+      const webhook = await storage.getZapierWebhook(id);
+      if (!webhook) {
+        return res.status(404).json({ error: "Webhook not found" });
+      }
+
+      if (webhook.orgId !== orgId) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      await storage.deleteZapierWebhook(id);
+
+      await storage.createAuditLog({
+        orgId,
+        userId: null,
+        action: "zapier_webhook_unsubscribed",
+        target: webhook.event,
+        detailJson: { webhookId: id },
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Invalid request" });
+    }
+  });
+
+  app.get("/api/zapier/hooks", validateApiKey, async (req: Request, res: Response) => {
+    try {
+      const orgId = (req as any).apiKeyOrgId;
+      if (!orgId) {
+        return res.status(400).json({ error: "No organization context" });
+      }
+
+      const webhooks = await storage.getZapierWebhooks(orgId);
+      res.json(webhooks.map(w => ({
+        id: w.id,
+        event: w.event,
+        targetUrl: w.targetUrl,
+        isActive: w.isActive,
+        triggerCount: w.triggerCount,
+        lastTriggeredAt: w.lastTriggeredAt,
+        createdAt: w.createdAt,
+      })));
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch webhooks" });
+    }
+  });
+
+  app.get("/api/zapier/hooks/:id/logs", validateApiKey, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const orgId = (req as any).apiKeyOrgId;
+      const limit = parseInt(req.query.limit as string) || 50;
+
+      const webhook = await storage.getZapierWebhook(id);
+      if (!webhook || webhook.orgId !== orgId) {
+        return res.status(404).json({ error: "Webhook not found" });
+      }
+
+      const logs = await storage.getZapierWebhookLogs(id, Math.min(limit, 100));
+      res.json(logs);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch webhook logs" });
+    }
+  });
+
+  // ===== ZAPIER ACTION ROUTES =====
+
+  app.post("/api/zapier/actions/create-project", validateApiKey, async (req: Request, res: Response) => {
+    try {
+      const orgId = (req as any).apiKeyOrgId;
+      if (!orgId) {
+        return res.status(400).json({ error: "No organization context" });
+      }
+
+      const { name } = z.object({
+        name: z.string().min(1).max(255),
+      }).parse(req.body);
+
+      const project = await storage.createProject({ orgId, name });
+
+      await dispatchEvent(orgId, "project.created", {
+        id: project.id,
+        name: project.name,
+        orgId: project.orgId,
+        createdAt: project.createdAt.toISOString(),
+      });
+
+      res.json(project);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Invalid request" });
+    }
+  });
+
+  app.post("/api/zapier/actions/run-agent", validateApiKey, async (req: Request, res: Response) => {
+    try {
+      const orgId = (req as any).apiKeyOrgId;
+      if (!orgId) {
+        return res.status(400).json({ error: "No organization context" });
+      }
+
+      const { projectId, goal, provider, model } = z.object({
+        projectId: z.string(),
+        goal: z.string().min(1),
+        provider: z.string().default("openai"),
+        model: z.string().default("gpt-4o"),
+      }).parse(req.body);
+
+      const project = await storage.getProject(projectId);
+      if (!project || project.orgId !== orgId) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+
+      const agentRun = await storage.createAgentRun({
+        projectId,
+        status: "queued",
+        model,
+        provider,
+        inputJson: { goal },
+        outputJson: null,
+        costEstimate: null,
+      });
+
+      orchestratorQueue.enqueue({
+        runId: agentRun.id,
+        projectId,
+        orgId,
+        goal,
+        mode: "default",
+      });
+
+      res.json({
+        runId: agentRun.id,
+        status: "queued",
+        projectId,
+      });
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Invalid request" });
+    }
+  });
+
+  app.post("/api/zapier/actions/add-memory", validateApiKey, async (req: Request, res: Response) => {
+    try {
+      const orgId = (req as any).apiKeyOrgId;
+      if (!orgId) {
+        return res.status(400).json({ error: "No organization context" });
+      }
+
+      const { projectId, kind, source, content } = z.object({
+        projectId: z.string(),
+        kind: z.string().default("note"),
+        source: z.string().default("zapier"),
+        content: z.string().min(1),
+      }).parse(req.body);
+
+      const project = await storage.getProject(projectId);
+      if (!project || project.orgId !== orgId) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+
+      const memoryItem = await storage.createMemoryItem({
+        projectId,
+        kind,
+        source,
+        content,
+      });
+
+      res.json(memoryItem);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Invalid request" });
+    }
+  });
+
+  app.post("/api/zapier/actions/create-roundtable", validateApiKey, async (req: Request, res: Response) => {
+    try {
+      const orgId = (req as any).apiKeyOrgId;
+      if (!orgId) {
+        return res.status(400).json({ error: "No organization context" });
+      }
+
+      const { title, topic, projectId, providers, orchestrationMode, maxTurns } = z.object({
+        title: z.string().min(1),
+        topic: z.string().optional(),
+        projectId: z.string().optional(),
+        providers: z.array(z.string()).default(["openai", "anthropic"]),
+        orchestrationMode: z.enum(["round_robin", "topic_based", "free_form"]).default("round_robin"),
+        maxTurns: z.number().int().min(1).max(100).default(20),
+      }).parse(req.body);
+
+      const org = await storage.getOrg(orgId);
+      if (!org) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+
+      const session = await storage.createRoundtableSession({
+        orgId,
+        projectId: projectId || null,
+        title,
+        topic: topic || null,
+        status: "active",
+        orchestrationMode,
+        maxTurns,
+        activeProviders: providers,
+        createdBy: org.ownerUserId,
+      });
+
+      res.json(session);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Invalid request" });
+    }
+  });
+
+  // ===== ZAPIER SEARCH ROUTES =====
+
+  app.get("/api/zapier/search/projects", validateApiKey, async (req: Request, res: Response) => {
+    try {
+      const orgId = (req as any).apiKeyOrgId;
+      if (!orgId) {
+        return res.status(400).json({ error: "No organization context" });
+      }
+
+      const projects = await storage.getProjectsByOrg(orgId);
+      res.json(projects);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to search projects" });
+    }
+  });
+
+  app.get("/api/zapier/search/agent-runs", validateApiKey, async (req: Request, res: Response) => {
+    try {
+      const orgId = (req as any).apiKeyOrgId;
+      if (!orgId) {
+        return res.status(400).json({ error: "No organization context" });
+      }
+
+      const { projectId, status } = z.object({
+        projectId: z.string().optional(),
+        status: z.string().optional(),
+      }).parse(req.query);
+
+      const projects = await storage.getProjectsByOrg(orgId);
+      const projectIds = projectId ? [projectId] : projects.map(p => p.id);
+
+      const allRuns = [];
+      for (const pid of projectIds) {
+        const runs = await storage.getAgentRunsByProject(pid);
+        allRuns.push(...runs);
+      }
+
+      const filteredRuns = status 
+        ? allRuns.filter(r => r.status === status)
+        : allRuns;
+
+      res.json(filteredRuns.slice(0, 100));
+    } catch (error) {
+      res.status(500).json({ error: "Failed to search agent runs" });
+    }
+  });
+
+  app.get("/api/zapier/search/users", validateApiKey, async (req: Request, res: Response) => {
+    try {
+      const users = await storage.listAllUsers();
+      res.json(users.map(u => ({
+        id: u.id,
+        email: u.email,
+        role: u.role,
+        createdAt: u.createdAt,
+      })));
+    } catch (error) {
+      res.status(500).json({ error: "Failed to search users" });
+    }
+  });
+
+  // ===== ZAPIER SAMPLE DATA ROUTE =====
+
+  app.get("/api/zapier/sample/:event", validateApiKey, async (req: Request, res: Response) => {
+    try {
+      const { event } = req.params;
+      
+      if (!SUPPORTED_EVENTS.includes(event as ZapierEventType)) {
+        return res.status(400).json({ 
+          error: "Invalid event type",
+          supportedEvents: SUPPORTED_EVENTS,
+        });
+      }
+
+      const sampleData = getSampleData(event as ZapierEventType);
+      res.json({
+        event,
+        timestamp: new Date().toISOString(),
+        data: sampleData,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get sample data" });
+    }
+  });
+
+  app.get("/api/zapier/events", validateApiKey, async (req: Request, res: Response) => {
+    res.json({ events: SUPPORTED_EVENTS });
   });
 
   // ===== USAGE DASHBOARD ROUTES =====
@@ -2201,6 +2566,17 @@ export async function registerRoutes(
         responseTimeMs: null,
         metadata: null,
       });
+
+      dispatchEvent(session.orgId, "roundtable.message", {
+        id: message.id,
+        sessionId: message.sessionId,
+        senderType: message.senderType,
+        provider: message.provider,
+        model: message.model,
+        content: message.content,
+        sequenceNumber: message.sequenceNumber,
+        createdAt: message.createdAt.toISOString(),
+      }).catch(err => console.error("[Zapier] Failed to dispatch roundtable.message:", err));
 
       res.json(message);
     } catch (error) {

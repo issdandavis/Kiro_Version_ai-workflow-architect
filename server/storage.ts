@@ -22,6 +22,8 @@ import {
   userProfiles, type UserProfile, type InsertUserProfile,
   workflows, type Workflow, type InsertWorkflow,
   workflowRuns, type WorkflowRun, type InsertWorkflowRun,
+  zapierWebhooks, type ZapierWebhook, type InsertZapierWebhook,
+  zapierWebhookLogs, type ZapierWebhookLog, type InsertZapierWebhookLog,
 } from "@shared/schema";
 import { eq, and, desc, like, sql, gte, max } from "drizzle-orm";
 
@@ -157,6 +159,16 @@ export interface IStorage {
   createWorkflowRun(data: InsertWorkflowRun): Promise<WorkflowRun>;
   getWorkflowRuns(workflowId: string): Promise<WorkflowRun[]>;
   updateWorkflowRun(id: string, updates: Partial<InsertWorkflowRun>): Promise<WorkflowRun | undefined>;
+
+  // Zapier Webhooks
+  createZapierWebhook(data: InsertZapierWebhook): Promise<ZapierWebhook>;
+  getZapierWebhooks(orgId: string): Promise<ZapierWebhook[]>;
+  getZapierWebhooksByEvent(orgId: string, event: string): Promise<ZapierWebhook[]>;
+  getZapierWebhook(id: string): Promise<ZapierWebhook | undefined>;
+  updateZapierWebhook(id: string, data: Partial<ZapierWebhook>): Promise<ZapierWebhook | undefined>;
+  deleteZapierWebhook(id: string): Promise<void>;
+  createZapierWebhookLog(data: InsertZapierWebhookLog): Promise<ZapierWebhookLog>;
+  getZapierWebhookLogs(webhookId: string, limit?: number): Promise<ZapierWebhookLog[]>;
 }
 
 export interface ExportData {
@@ -900,6 +912,59 @@ export class DbStorage implements IStorage {
       .where(eq(workflowRuns.id, id))
       .returning();
     return run;
+  }
+
+  // Zapier Webhooks
+  async createZapierWebhook(data: InsertZapierWebhook): Promise<ZapierWebhook> {
+    const [webhook] = await db.insert(zapierWebhooks).values(data).returning();
+    return webhook;
+  }
+
+  async getZapierWebhooks(orgId: string): Promise<ZapierWebhook[]> {
+    return db
+      .select()
+      .from(zapierWebhooks)
+      .where(eq(zapierWebhooks.orgId, orgId))
+      .orderBy(desc(zapierWebhooks.createdAt));
+  }
+
+  async getZapierWebhooksByEvent(orgId: string, event: string): Promise<ZapierWebhook[]> {
+    return db
+      .select()
+      .from(zapierWebhooks)
+      .where(and(eq(zapierWebhooks.orgId, orgId), eq(zapierWebhooks.event, event)));
+  }
+
+  async getZapierWebhook(id: string): Promise<ZapierWebhook | undefined> {
+    const [webhook] = await db.select().from(zapierWebhooks).where(eq(zapierWebhooks.id, id));
+    return webhook;
+  }
+
+  async updateZapierWebhook(id: string, data: Partial<ZapierWebhook>): Promise<ZapierWebhook | undefined> {
+    const [webhook] = await db
+      .update(zapierWebhooks)
+      .set(data)
+      .where(eq(zapierWebhooks.id, id))
+      .returning();
+    return webhook;
+  }
+
+  async deleteZapierWebhook(id: string): Promise<void> {
+    await db.delete(zapierWebhooks).where(eq(zapierWebhooks.id, id));
+  }
+
+  async createZapierWebhookLog(data: InsertZapierWebhookLog): Promise<ZapierWebhookLog> {
+    const [log] = await db.insert(zapierWebhookLogs).values(data).returning();
+    return log;
+  }
+
+  async getZapierWebhookLogs(webhookId: string, limit: number = 50): Promise<ZapierWebhookLog[]> {
+    return db
+      .select()
+      .from(zapierWebhookLogs)
+      .where(eq(zapierWebhookLogs.webhookId, webhookId))
+      .orderBy(desc(zapierWebhookLogs.deliveredAt))
+      .limit(limit);
   }
 }
 

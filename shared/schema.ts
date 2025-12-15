@@ -636,3 +636,49 @@ export const insertQrLoginSessionSchema = createInsertSchema(qrLoginSessions).om
 
 export type InsertQrLoginSession = z.infer<typeof insertQrLoginSessionSchema>;
 export type QrLoginSession = typeof qrLoginSessions.$inferSelect;
+
+// ===== ZAPIER INTEGRATION =====
+// Webhook subscriptions for Zapier REST hooks
+export const zapierWebhooks = pgTable("zapier_webhooks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orgId: varchar("org_id").notNull().references(() => orgs.id, { onDelete: "cascade" }),
+  event: text("event").notNull(), // Event type: user.created, project.created, agent_run.completed, etc.
+  targetUrl: text("target_url").notNull(), // Zapier's webhook URL
+  isActive: boolean("is_active").notNull().default(true),
+  secretKey: text("secret_key").notNull(), // For webhook signature verification
+  metadata: jsonb("metadata"), // Additional config
+  lastTriggeredAt: timestamp("last_triggered_at"),
+  triggerCount: integer("trigger_count").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertZapierWebhookSchema = createInsertSchema(zapierWebhooks).omit({
+  id: true,
+  lastTriggeredAt: true,
+  triggerCount: true,
+  createdAt: true,
+});
+
+export type InsertZapierWebhook = z.infer<typeof insertZapierWebhookSchema>;
+export type ZapierWebhook = typeof zapierWebhooks.$inferSelect;
+
+// Zapier webhook delivery log (for debugging failed deliveries)
+export const zapierWebhookLogs = pgTable("zapier_webhook_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  webhookId: varchar("webhook_id").notNull().references(() => zapierWebhooks.id, { onDelete: "cascade" }),
+  event: text("event").notNull(),
+  payload: jsonb("payload").notNull(),
+  responseStatus: integer("response_status"),
+  responseBody: text("response_body"),
+  success: boolean("success").notNull().default(false),
+  errorMessage: text("error_message"),
+  deliveredAt: timestamp("delivered_at").notNull().defaultNow(),
+});
+
+export const insertZapierWebhookLogSchema = createInsertSchema(zapierWebhookLogs).omit({
+  id: true,
+  deliveredAt: true,
+});
+
+export type InsertZapierWebhookLog = z.infer<typeof insertZapierWebhookLogSchema>;
+export type ZapierWebhookLog = typeof zapierWebhookLogs.$inferSelect;

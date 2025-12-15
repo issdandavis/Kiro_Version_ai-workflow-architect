@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import { retryService } from "./retryService";
 import { trackCost } from "../middleware/costGovernor";
 import { getUserCredential } from "./vault";
+import { dispatchEvent } from "./zapierService";
 import type { InsertDecisionTrace } from "@shared/schema";
 
 export interface AgentHandoff {
@@ -299,6 +300,16 @@ class OrchestratorQueue extends EventEmitter {
       },
       costEstimate,
     });
+
+    dispatchEvent(task.orgId, "agent_run.completed", {
+      id: task.runId,
+      projectId: task.projectId,
+      status: "completed",
+      provider: response.usedProvider,
+      model: run.model,
+      costEstimate,
+      createdAt: run.createdAt.toISOString(),
+    }).catch(err => console.error("[Zapier] Failed to dispatch agent_run.completed:", err));
 
     await this.traceDecision(
       task.runId,
