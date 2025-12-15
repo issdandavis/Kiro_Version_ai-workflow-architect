@@ -98,7 +98,7 @@ export default function Shop() {
   useEffect(() => {
     const audio = audioRef.current;
     if (audio) {
-      audio.volume = 0.3;
+      audio.volume = 0.1;
       audio.loop = true;
       audio.play().catch(() => {});
     }
