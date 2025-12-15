@@ -332,6 +332,28 @@ export class HuggingFaceAdapter extends BaseProviderAdapter {
   }
 }
 
+export class OllamaAdapter extends BaseProviderAdapter {
+  constructor() {
+    super("Ollama", "local");
+  }
+
+  async call(prompt: string, model: string): Promise<ProviderResponse> {
+    const { generateWithOllama } = await import("./ollamaClient");
+    return generateWithOllama(prompt, model || "llama3.1:8b");
+  }
+}
+
+export class GroqAdapter extends BaseProviderAdapter {
+  constructor(apiKey: string | undefined) {
+    super("Groq", apiKey);
+  }
+
+  async call(prompt: string, model: string): Promise<ProviderResponse> {
+    const { generateWithGroq } = await import("./groqClient");
+    return generateWithGroq(prompt, model || "llama3-8b-8192");
+  }
+}
+
 // Factory to get the right adapter
 // If apiKey is provided, use it; otherwise fall back to process.env
 export function getProviderAdapter(provider: string, apiKey?: string): ProviderAdapter {
@@ -357,6 +379,10 @@ export function getProviderAdapter(provider: string, apiKey?: string): ProviderA
       return new GeminiAdapter(apiKey || envApiKeys.google);
     case "huggingface":
       return new HuggingFaceAdapter();
+    case "ollama":
+      return new OllamaAdapter();
+    case "groq":
+      return new GroqAdapter(apiKey || process.env.GROQ_API_KEY);
     default:
       throw new Error(`Unknown provider: ${provider}`);
   }
