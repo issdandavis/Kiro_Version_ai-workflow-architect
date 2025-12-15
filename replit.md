@@ -229,6 +229,23 @@ All integrations are managed securely through **Replit's Secrets tab** (lock ico
 - `client/src/pages/Gallery.tsx` - Art gallery page
 - Route: `/gallery` (public)
 
+#### ✅ COMPLETED: Integration Marketplace Links
+- [x] Added Integration Marketplace section to Integrations page
+- [x] Links to Jam.dev, Proton Mail, Zapier, Linear, Figma
+- [x] External links open in new tabs with proper styling
+
+**Key file:** `client/src/pages/Integrations.tsx`
+
+#### ✅ COMPLETED: Security Infrastructure (Recovery Codes, 2FA, QR Sign-In)
+- [x] Database schema for recovery codes (hashed, single-use)
+- [x] Database schema for TOTP 2FA secrets (encrypted)
+- [x] Database schema for QR login sessions (token-based, expiring)
+- [x] Security section in Settings UI with placeholder cards
+
+**Key files:**
+- `shared/schema.ts` - recoveryCodes, totpSecrets, qrLoginSessions tables
+- `client/src/pages/Settings.tsx` - Security section with UI cards
+
 #### Priority 4: Stripe Subscriptions UI (Remaining)
 - [ ] Add subscription management in Settings
 - [ ] Promo code redemption UI
