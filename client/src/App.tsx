@@ -25,6 +25,7 @@ import Logs from "@/pages/Logs";
 import Workflows from "@/pages/Workflows";
 import Workspaces from "@/pages/Workspaces";
 import Gallery from "@/pages/Gallery";
+import WebsiteBuilder from "@/pages/WebsiteBuilder";
 
 const PUBLIC_ROUTES = ["/", "/shop", "/login", "/signup", "/gallery"];
 
@@ -55,6 +56,7 @@ function Router() {
       <Route path="/logs" component={Logs} />
       <Route path="/workflows" component={Workflows} />
       <Route path="/workspaces" component={Workspaces} />
+      <Route path="/website-builder" component={WebsiteBuilder} />
       
       <Route component={NotFound} />
     </Switch>
