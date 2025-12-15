@@ -96,18 +96,34 @@ All integrations are managed securely through **Replit's Secrets tab** (lock ico
 
 ### 🔲 TODO - FEATURES TO BUILD
 
-#### Priority 1: Storage Hub
-- [ ] Update `client/src/pages/Storage.tsx` to fetch real files from APIs
-- [ ] Add provider selection tabs (Google Drive, OneDrive, GitHub)
-- [ ] Implement file browser with folder navigation
-- [ ] Add upload/download functionality
-- [ ] Show storage quota from each provider
+#### ✅ COMPLETED: Storage Hub
+- [x] Built unified Storage Hub connecting Google Drive, OneDrive, Dropbox
+- [x] Provider selection tabs with storage quota display
+- [x] File browser with folder navigation and breadcrumbs
+- [x] Download, upload, delete functionality
+- [x] AI-powered file search using Gemini
 
-**Relevant files:**
-- `client/src/pages/Storage.tsx` - Frontend page (currently has mock data)
-- `server/services/googleDriveClient.ts` - Google Drive API
-- `server/services/oneDriveClient.ts` - OneDrive API
-- `server/routes.ts` - API endpoints (search for "GOOGLE DRIVE ROUTES", "ONEDRIVE ROUTES")
+**Key files:**
+- `client/src/pages/Storage.tsx` - Frontend with real API integration
+- `server/services/storageHub.ts` - Unified storage aggregation service
+- `server/services/dropboxClient.ts` - Dropbox integration
+- `server/routes.ts` - Unified storage routes at `/api/storage/*`
+
+#### ✅ COMPLETED: YouTube + Coding Split View
+- [x] Resizable split-panel layout with YouTube and Monaco editor
+- [x] YouTube URL input with video embedding
+- [x] LocalStorage persistence for video URL
+- [x] Mobile responsive with show/hide toggle
+
+**Key file:** `client/src/pages/CodingStudio.tsx`
+
+#### ✅ COMPLETED: Shopify Banner
+- [x] Footer banner linking to Aethermore Works store
+- [x] Shopify branding with green gradient
+
+**Key files:**
+- `client/src/components/ShopifyBanner.tsx`
+- `client/src/components/dashboard/Layout.tsx`
 
 #### Priority 2: Workspace System
 - [ ] Create workspace CRUD API routes
