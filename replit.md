@@ -205,10 +205,31 @@ All integrations are managed securely through **Replit's Secrets tab** (lock ico
 - Use stepper component from shadcn/ui
 - Integrate with AI providers for code generation
 
-#### Priority 4: Stripe Subscriptions UI
-- [x] Build pricing page with plan tiers (Shop.tsx updated!)
-- [x] Create Stripe products ($49 lifetime, $9/month)
-- [x] Implement checkout flow
+#### ✅ COMPLETED: Shop Page with 3-Tier Pricing
+- [x] Redesigned Shop page with 3-tier pricing cards
+- [x] Starter tier (FREE) - 50 AI messages/month, 5 workflow executions, 2 integrations
+- [x] Pro tier ($20/month) - Unlimited AI messages, workflows, integrations, priority support
+- [x] Team tier ($45/user/month) - Everything in Pro + team workspaces, collaboration, SSO
+- [x] "Most Popular" badge on Pro tier
+- [x] Feature comparison table with all tiers
+- [x] Stripe checkout integration for Pro/Team subscriptions
+- [x] Background music with mute toggle
+- [x] Mobile-responsive design
+
+**Key files:**
+- `client/src/pages/Shop.tsx` - 3-tier pricing page with Stripe checkout
+
+#### ✅ COMPLETED: AI Art Gallery
+- [x] Gallery page to showcase AI-generated artwork
+- [x] Displays user artwork with zoom modal
+- [x] Navigation from Shop page and public routes
+- [x] Background music synchronized with Shop
+
+**Key files:**
+- `client/src/pages/Gallery.tsx` - Art gallery page
+- Route: `/gallery` (public)
+
+#### Priority 4: Stripe Subscriptions UI (Remaining)
 - [ ] Add subscription management in Settings
 - [ ] Promo code redemption UI
 
