@@ -262,6 +262,7 @@ export default function Workspaces() {
                     setEditingWorkspace(null);
                     resetForm();
                   }}
+                  data-testid="button-cancel-workspace"
                 >
                   Cancel
                 </Button>

@@ -182,28 +182,27 @@ All integrations are managed securely through **Replit's Secrets tab** (lock ico
 - `client/src/components/ShopifyBanner.tsx`
 - `client/src/components/dashboard/Layout.tsx`
 
-#### Priority 2: Workspace System
-- [ ] Create workspace CRUD API routes
-- [ ] Build workspace management UI
-- [ ] Link workspaces to projects
-- [ ] Add file association to workspaces
+#### ✅ COMPLETED: Workspace System
+- [x] Full CRUD API routes for workspaces
+- [x] Workspace management UI page with create/edit/delete
+- [x] Type selection (code, design, docs, general) with icons
+- [x] Storage methods in server/storage.ts
 
-**Relevant files:**
-- `shared/schema.ts` - `workspaces` table is ready
-- `server/storage.ts` - Add workspace storage methods
-- `server/routes.ts` - Add workspace routes
+**Key files:**
+- `client/src/pages/Workspaces.tsx` - Workspace management UI
+- `server/storage.ts` - Workspace CRUD storage methods
+- `server/routes.ts` - `/api/workspaces/*` routes
 
-#### Priority 3: Website Builder Wizard
-- [ ] Create multi-step wizard component
-- [ ] Step 1: Plan (define requirements)
-- [ ] Step 2: Design (select templates)
-- [ ] Step 3: Build (generate code with AI)
-- [ ] Step 4: Deploy (publish to Replit)
+#### ✅ COMPLETED: Website Builder Wizard
+- [x] 4-step wizard component with progress indicator
+- [x] Step 1: Plan (define site name, type, pages, features)
+- [x] Step 2: Design (select color theme, layout style)
+- [x] Step 3: Build (AI generates code with provider selection)
+- [x] Step 4: Deploy (publish to Replit with live preview)
 
-**Suggested approach:**
-- Create `client/src/pages/WebsiteBuilder.tsx`
-- Use stepper component from shadcn/ui
-- Integrate with AI providers for code generation
+**Key files:**
+- `client/src/pages/WebsiteBuilder.tsx` - Full wizard implementation
+- Route: `/website-builder`
 
 #### ✅ COMPLETED: Shop Page with 3-Tier Pricing
 - [x] Redesigned Shop page with 3-tier pricing cards
@@ -246,9 +245,12 @@ All integrations are managed securely through **Replit's Secrets tab** (lock ico
 - `shared/schema.ts` - recoveryCodes, totpSecrets, qrLoginSessions tables
 - `client/src/pages/Settings.tsx` - Security section with UI cards
 
-#### Priority 4: Stripe Subscriptions UI (Remaining)
-- [ ] Add subscription management in Settings
-- [ ] Promo code redemption UI
+#### ✅ COMPLETED: Stripe Subscriptions UI
+- [x] Subscription management section in Settings page
+- [x] Current plan display with status and renewal date
+- [x] Stripe Customer Portal integration for subscription changes
+- [x] Promo code redemption UI with validation
+- [x] API routes: GET /api/subscription, POST /api/subscription/portal, POST /api/promo/redeem
 
 **Stripe Products Created:**
 | Product | Price ID | Amount |
@@ -256,11 +258,10 @@ All integrations are managed securely through **Replit's Secrets tab** (lock ico
 | AI Orchestration Hub - Lifetime Access | price_1SeMsREbFOchx4qYSgaxCHwo | $49 one-time |
 | AI Orchestration Hub - Monthly | price_1SeMsSEbFOchx4qYrHFo6ghf | $9/month |
 
-**Relevant files:**
-- `client/src/pages/Shop.tsx` - Pricing page with Stripe checkout
-- `server/services/stripeClient.ts` - Stripe API (createStripeProduct, createStripePrice added)
-- `shared/schema.ts` - `subscriptions`, `promoCodes`, `promoRedemptions` tables ready
-- API routes exist: `/api/stripe/products`, `/api/stripe/checkout`, `/api/stripe/product`, `/api/stripe/price`
+**Key files:**
+- `client/src/pages/Settings.tsx` - Subscription & promo code UI sections
+- `server/routes.ts` - Subscription and promo API endpoints
+- `server/storage.ts` - Subscription and promo storage methods
 
 ---
 
