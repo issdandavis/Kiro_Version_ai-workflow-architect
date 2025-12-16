@@ -17,6 +17,45 @@ export interface ProviderAdapter {
   call(prompt: string, model: string): Promise<ProviderResponse>;
 }
 
+// Helper to detect invalid/placeholder API keys
+function isValidApiKey(key: string | undefined): boolean {
+  if (!key) return false;
+  // Detect common placeholder patterns
+  if (key.includes('DUMMY') || key.includes('dummy') || key.includes('placeholder')) return false;
+  if (key.includes('YOUR_API_KEY') || key.includes('your_api_key')) return false;
+  if (key.includes('xxx') || key.includes('XXX')) return false;
+  if (key.length < 10) return false; // Most real API keys are longer
+  if (key.startsWith('sk-test') && key.includes('DUMMY')) return false;
+  return true;
+}
+
+// Demo mode flag - when true, return stub responses instead of calling real APIs
+const DEMO_MODE = process.env.AI_DEMO_MODE === 'true' || process.env.NODE_ENV === 'development';
+
+// Generate realistic demo response based on provider and prompt
+function generateDemoResponse(provider: string, prompt: string): ProviderResponse {
+  const shortPrompt = prompt.substring(0, 100);
+  const responseMap: Record<string, (p: string) => string> = {
+    openai: (p) => `**GPT Analysis:**\n\nBased on your query about "${p.substring(0, 50)}...", here are my key insights:\n\n1. **Core Understanding**: This topic requires examining multiple perspectives and considering both short-term and long-term implications.\n\n2. **Practical Applications**: I recommend focusing on actionable steps that can be implemented immediately while building toward larger goals.\n\n3. **Key Considerations**: Always evaluate trade-offs between different approaches and remain flexible as new information emerges.\n\n*This is a demo response - configure valid API keys for production use.*`,
+    anthropic: (p) => `I'll analyze this thoughtfully.\n\n**Claude's Perspective:**\n\nRegarding "${p.substring(0, 50)}...", I see several important dimensions to consider:\n\n• **Analytical View**: Breaking this down systematically reveals interconnected factors that influence outcomes.\n\n• **Ethical Considerations**: It's important to weigh the impact on all stakeholders involved.\n\n• **Recommendation**: A balanced approach that combines careful analysis with decisive action typically yields the best results.\n\n*This is a demo response - configure valid API keys for production use.*`,
+    google: (p) => `**Gemini Insights:**\n\nExploring "${p.substring(0, 50)}...":\n\n1. **Research Perspective**: Drawing from diverse knowledge sources, this topic intersects with several fields.\n\n2. **Data-Driven Approach**: Evidence suggests that systematic methodologies tend to produce more reliable outcomes.\n\n3. **Future Outlook**: Emerging trends indicate continued evolution in this space with new opportunities arising.\n\n*This is a demo response - configure valid API keys for production use.*`,
+    perplexity: (p) => `**Perplexity Research Summary:**\n\nAnalyzing "${p.substring(0, 50)}...":\n\n• **Key Findings**: Current research and real-time data indicate significant developments in this area.\n\n• **Sources**: Multiple authoritative references support these conclusions.\n\n• **Actionable Insights**: Based on the latest information, consider these priority actions.\n\n*This is a demo response - configure valid API keys for production use.*`,
+    xai: (p) => `**Grok Analysis:**\n\nLet me break down "${p.substring(0, 50)}...":\n\n• Direct and candid assessment of the situation\n• Practical recommendations without unnecessary complexity\n• Clear next steps for implementation\n\n*This is a demo response - configure valid API keys for production use.*`,
+  };
+  
+  const generator = responseMap[provider.toLowerCase()] || responseMap.openai;
+  
+  return {
+    success: true,
+    content: generator(shortPrompt),
+    usage: {
+      inputTokens: Math.floor(prompt.length / 4),
+      outputTokens: 150 + Math.floor(Math.random() * 100),
+      costEstimate: "0.0000",
+    },
+  };
+}
+
 // Base adapter with fallback behavior
 class BaseProviderAdapter implements ProviderAdapter {
   constructor(
@@ -25,10 +64,10 @@ class BaseProviderAdapter implements ProviderAdapter {
   ) {}
 
   async call(prompt: string, model: string): Promise<ProviderResponse> {
-    if (!this.apiKey) {
+    if (!this.apiKey || !isValidApiKey(this.apiKey)) {
       return {
         success: false,
-        error: `${this.name} API key not configured. Please add the API key in Settings > API Keys.`,
+        error: `${this.name} API key not configured or invalid. Please add a valid API key in Settings > API Keys.`,
       };
     }
 
@@ -51,10 +90,14 @@ export class OpenAIAdapter extends BaseProviderAdapter {
   }
 
   async call(prompt: string, model: string): Promise<ProviderResponse> {
-    if (!this.apiKey) {
+    if (!this.apiKey || !isValidApiKey(this.apiKey)) {
+      // Return demo response in development mode
+      if (DEMO_MODE) {
+        return generateDemoResponse("openai", prompt);
+      }
       return {
         success: false,
-        error: "OpenAI API key not configured. Please add the API key in Settings > API Keys.",
+        error: "OpenAI API key not configured or invalid. Please add a valid API key in Settings > API Keys.",
       };
     }
 
@@ -106,10 +149,14 @@ export class AnthropicAdapter extends BaseProviderAdapter {
   }
 
   async call(prompt: string, model: string): Promise<ProviderResponse> {
-    if (!this.apiKey) {
+    if (!this.apiKey || !isValidApiKey(this.apiKey)) {
+      // Return demo response in development mode
+      if (DEMO_MODE) {
+        return generateDemoResponse("anthropic", prompt);
+      }
       return {
         success: false,
-        error: "Anthropic API key not configured. Please add the API key in Settings > API Keys.",
+        error: "Anthropic API key not configured or invalid. Please add a valid API key in Settings > API Keys.",
       };
     }
 
@@ -163,10 +210,14 @@ export class XAIAdapter extends BaseProviderAdapter {
   }
 
   async call(prompt: string, model: string): Promise<ProviderResponse> {
-    if (!this.apiKey) {
+    if (!this.apiKey || !isValidApiKey(this.apiKey)) {
+      // Return demo response in development mode
+      if (DEMO_MODE) {
+        return generateDemoResponse("xai", prompt);
+      }
       return {
         success: false,
-        error: "xAI API key not configured. Please add the API key in Settings > API Keys.",
+        error: "xAI API key not configured or invalid. Please add a valid API key in Settings > API Keys.",
       };
     }
 
@@ -218,10 +269,14 @@ export class PerplexityAdapter extends BaseProviderAdapter {
   }
 
   async call(prompt: string, model: string): Promise<ProviderResponse> {
-    if (!this.apiKey) {
+    if (!this.apiKey || !isValidApiKey(this.apiKey)) {
+      // Return demo response in development mode
+      if (DEMO_MODE) {
+        return generateDemoResponse("perplexity", prompt);
+      }
       return {
         success: false,
-        error: "Perplexity API key not configured. Please add the API key in Settings > API Keys.",
+        error: "Perplexity API key not configured or invalid. Please add a valid API key in Settings > API Keys.",
       };
     }
 
@@ -273,10 +328,14 @@ export class GeminiAdapter extends BaseProviderAdapter {
   }
 
   async call(prompt: string, model: string): Promise<ProviderResponse> {
-    if (!this.apiKey) {
+    if (!this.apiKey || !isValidApiKey(this.apiKey)) {
+      // Return demo response in development mode
+      if (DEMO_MODE) {
+        return generateDemoResponse("google", prompt);
+      }
       return {
         success: false,
-        error: "Google API key not configured. Please add the API key in Settings > API Keys.",
+        error: "Google Gemini API key not configured or invalid. Please add a valid API key in Settings > API Keys.",
       };
     }
 
@@ -356,13 +415,14 @@ export class GroqAdapter extends BaseProviderAdapter {
 
 // Factory to get the right adapter
 // If apiKey is provided, use it; otherwise fall back to process.env
+// Check for AI_INTEGRATIONS_ prefix first (Replit integrations), then standard names
 export function getProviderAdapter(provider: string, apiKey?: string): ProviderAdapter {
   const envApiKeys = {
-    openai: process.env.OPENAI_API_KEY,
-    anthropic: process.env.ANTHROPIC_API_KEY,
+    openai: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY,
+    anthropic: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY,
     xai: process.env.XAI_API_KEY,
     perplexity: process.env.PERPLEXITY_API_KEY,
-    google: process.env.GOOGLE_API_KEY,
+    google: process.env.AI_INTEGRATIONS_GEMINI_API_KEY || process.env.GOOGLE_API_KEY,
   };
 
   switch (provider.toLowerCase()) {

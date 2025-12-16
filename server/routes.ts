@@ -3038,6 +3038,166 @@ export async function registerRoutes(
     }
   });
 
+  // ===== AI WORKBENCH ROUTES =====
+  
+  // Multi-panel AI chat endpoint (allows guest access for demo)
+  app.post("/api/workbench/chat", agentLimiter, async (req: Request, res: Response) => {
+    try {
+      const { provider, model, message, context, mode } = z.object({
+        provider: z.string().min(1),
+        model: z.string().min(1),
+        message: z.string().min(1),
+        context: z.string().optional(),
+        mode: z.enum(["consensus", "expert", "debate", "synthesis"]).optional(),
+      }).parse(req.body);
+
+      // Use session context if available, otherwise use guest defaults
+      const orgId = req.session.orgId || "guest-org";
+      const userId = req.session.userId || "guest-user";
+
+      const adapter = getProviderAdapter(provider);
+      const startTime = Date.now();
+      
+      const systemPrompt = context 
+        ? `You are participating in a multi-AI collaboration session. Context: ${context}. Mode: ${mode || 'synthesis'}. Provide your unique perspective based on your model's strengths.`
+        : "You are a helpful AI assistant participating in a collaborative discussion.";
+      
+      const fullPrompt = `${systemPrompt}\n\nUser message: ${message}`;
+      
+      const response = await adapter.call(fullPrompt, model);
+      const responseTime = Date.now() - startTime;
+
+      if (!response.success) {
+        return res.status(500).json({ error: response.error || "AI call failed" });
+      }
+
+      const tokensUsed = (response.usage?.inputTokens || 0) + (response.usage?.outputTokens || 0);
+
+      // Track usage only for authenticated users (skip for guests)
+      const isGuest = orgId === "guest-org";
+      if (!isGuest && req.session.orgId && req.session.userId) {
+        try {
+          await storage.createUsageRecord({
+            orgId,
+            userId,
+            provider,
+            model,
+            inputTokens: response.usage?.inputTokens || 0,
+            outputTokens: response.usage?.outputTokens || 0,
+            estimatedCostUsd: response.usage?.costEstimate || "0",
+            metadata: { type: "workbench", mode: mode || "synthesis" },
+          });
+        } catch (usageError) {
+          // Log but don't fail the request if usage tracking fails
+          console.error("Failed to track usage:", usageError);
+        }
+      }
+
+      res.json({
+        content: response.content,
+        provider,
+        model,
+        tokensUsed,
+        responseTimeMs: responseTime,
+      });
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Chat failed" });
+    }
+  });
+
+  // Synthesize multi-panel outputs (allows guest access for demo)
+  app.post("/api/workbench/synthesize", agentLimiter, async (req: Request, res: Response) => {
+    try {
+      const { goal, mode, contributions } = z.object({
+        goal: z.string().min(1),
+        mode: z.enum(["consensus", "expert", "debate", "synthesis"]),
+        contributions: z.string().min(1),
+      }).parse(req.body);
+
+      // Use session context if available, otherwise use guest defaults
+      const orgId = req.session.orgId || "guest-org";
+      const userId = req.session.userId || "guest-user";
+
+      const modeInstructions: Record<string, string> = {
+        consensus: "Identify areas of agreement among the AI contributions and highlight the consensus view. Note any minor disagreements.",
+        expert: "Combine the expert insights from each AI, giving appropriate weight to each domain of expertise. Create a comprehensive expert panel summary.",
+        debate: "Analyze the different positions presented, evaluate the strength of each argument, and provide a balanced assessment of the debate outcomes.",
+        synthesis: "Merge all insights into a unified, coherent output. Eliminate redundancy while preserving unique perspectives. Create actionable recommendations.",
+      };
+
+      const synthesisPrompt = `You are synthesizing outputs from multiple AI agents working on a collaborative task.
+
+MAIN GOAL: ${goal}
+
+COLLABORATION MODE: ${mode}
+${modeInstructions[mode]}
+
+AI CONTRIBUTIONS:
+${contributions}
+
+Please provide:
+1. A synthesized summary that combines all perspectives
+2. Key insights from each contributor
+3. A list of actionable items extracted from the discussion (as a JSON array in a section marked ACTION_ITEMS:)
+
+Format the action items section like this:
+ACTION_ITEMS:
+["item 1", "item 2", "item 3"]`;
+
+      // Use Anthropic for synthesis by default as it's good at following instructions
+      const adapter = getProviderAdapter("anthropic");
+      const response = await adapter.call(synthesisPrompt, "claude-sonnet-4-20250514");
+
+      if (!response.success) {
+        return res.status(500).json({ error: response.error || "Synthesis failed" });
+      }
+
+      // Extract action items from response
+      let actionItems: string[] = [];
+      const content = response.content || "";
+      const actionMatch = content.match(/ACTION_ITEMS:\s*\n?\[([^\]]+)\]/);
+      if (actionMatch) {
+        try {
+          actionItems = JSON.parse(`[${actionMatch[1]}]`);
+        } catch {
+          // Try to extract items manually
+          const items = actionMatch[1].split(",").map(s => s.trim().replace(/^["']|["']$/g, ''));
+          actionItems = items.filter(i => i.length > 0);
+        }
+      }
+
+      // Remove the action items section from main synthesis for cleaner output
+      const synthesis = content.replace(/ACTION_ITEMS:\s*\n?\[[^\]]+\]/, '').trim();
+
+      // Track usage only for authenticated users (skip for guests)
+      const isGuest = orgId === "guest-org";
+      if (!isGuest && req.session.orgId && req.session.userId) {
+        try {
+          await storage.createUsageRecord({
+            orgId,
+            userId,
+            provider: "anthropic",
+            model: "claude-sonnet-4-20250514",
+            inputTokens: response.usage?.inputTokens || 0,
+            outputTokens: response.usage?.outputTokens || 0,
+            estimatedCostUsd: response.usage?.costEstimate || "0",
+            metadata: { type: "workbench_synthesis", mode },
+          });
+        } catch (usageError) {
+          console.error("Failed to track synthesis usage:", usageError);
+        }
+      }
+
+      res.json({
+        synthesis,
+        actionItems,
+        tokensUsed: (response.usage?.inputTokens || 0) + (response.usage?.outputTokens || 0),
+      });
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Synthesis failed" });
+    }
+  });
+
   // ===== CODE IMPROVEMENT ROUTES =====
 
   // Analyze code and get improvement suggestions
