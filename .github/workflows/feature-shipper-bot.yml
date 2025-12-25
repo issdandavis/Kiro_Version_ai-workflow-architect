@@ -1,11 +1,12 @@
-name: "🚀 Feature Shipper - Twin Bot System"
+name: "💡 Feature Suggester - Auto Improvement"
 
 on:
+  workflow_run:
+    workflows: ["Self-Healing AI System"]
+    types: [completed]
   schedule:
-    - cron: '0 */6 * * *'  # Every 6 hours - WORK focus
+    - cron: '0 */12 * * *'
   workflow_dispatch:
-  issues:
-    types: [opened, labeled]
 
 permissions:
   contents: write
@@ -13,229 +14,107 @@ permissions:
   pull-requests: write
 
 jobs:
-  ship_features:
+  suggest_improvements:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
-      - name: "🎯 Check WORK backlog"
-        id: backlog
+      - name: "🔍 Analyze repo health"
+        id: analyze
         run: |
-          echo "📋 Checking what needs to be SHIPPED..."
+          echo "Analyzing repository for improvement opportunities..."
           
-          # Focus on BUSINESS goals, not just code quality
-          SELLABLE_FEATURES=0
+          # Check what's missing for sale
+          MISSING=""
+          [ ! -f "PRICING.md" ] && MISSING="${MISSING}pricing,"
+          [ ! -f "FEATURES.md" ] && MISSING="${MISSING}features,"
+          [ ! -f "DEMO.md" ] && MISSING="${MISSING}demo,"
           
-          # Check if README has demo/screenshots
-          if ! grep -q "Demo" README.md 2>/dev/null; then
-            echo "need_demo=true" >> $GITHUB_OUTPUT
-            SELLABLE_FEATURES=$((SELLABLE_FEATURES + 1))
-          fi
+          echo "missing=$MISSING" >> $GITHUB_OUTPUT
+          echo "✅ Analysis complete: Missing [$MISSING]"
           
-          # Check if there's a PRICING file
-          if [ ! -f PRICING.md ]; then
-            echo "need_pricing=true" >> $GITHUB_OUTPUT
-            SELLABLE_FEATURES=$((SELLABLE_FEATURES + 1))
-          fi
-          
-          echo "missing_features=$SELLABLE_FEATURES" >> $GITHUB_OUTPUT
-          echo "📊 $SELLABLE_FEATURES features needed for sale"
-          
-      - name: "🔗 Sync with Zapier Twin Bot"
+      - name: "📝 Create improvement suggestions"
         run: |
-          echo "🤝 Communicating with Zapier twin..."
+          mkdir -p .github/improvements
           
-          TWIN_PAYLOAD='{
-            "bot_id": "github-feature-shipper",
-            "twin_status": "active",
-            "mission": "ship_sellable_features",
-            "progress": {
-              "features_to_ship": ${{ steps.backlog.outputs.missing_features }},
-              "self_improvement_time": "10%",
-              "feature_work_time": "90%"
-            },
-            "asking_twin": {
-              "create_gumroad_listing": true,
-              "setup_payment_links": true,
-              "create_demo_video": false
-            }
-          }'
+          cat > .github/improvements/SUGGESTIONS.md << 'EOF'
+# 💡 Automated Improvement Suggestions
+
+## Priority 1: Make Product Sellable
+- [ ] Create PRICING.md with tier structure
+- [ ] Create FEATURES.md highlighting value
+- [ ] Create DEMO.md with screenshots
+- [ ] Add README badges showing build status
+
+## Priority 2: Actual Auto-Healing
+- [ ] Make self-healing bot CREATE actual PRs
+- [ ] Add GitHub CLI to self-healing workflow
+- [ ] Auto-commit fixes directly to main
+
+## Priority 3: Zapier Integration
+- [ ] Document webhook setup in ZAPIER.md
+- [ ] Create example Zap templates
+- [ ] Add webhook testing endpoint
+
+Generated: $(date)
+EOF
           
-          echo "$TWIN_PAYLOAD"
+          git add .github/improvements/
+          echo "✅ Suggestions created"
           
-          # Send to Zapier (add ZAPIER_TWIN_WEBHOOK secret)
-          # curl -X POST "${{ secrets.ZAPIER_TWIN_WEBHOOK }}" \
-          #   -H "Content-Type: application/json" \
-          #   -d "$TWIN_PAYLOAD"
-          
-          echo "✅ Twin bot notified!"
-          
-      - name: "💰 Create PRICING.md"
-        if: steps.backlog.outputs.need_pricing == 'true'
+      - name: "🚀 Create sellable files if missing"
         run: |
-          cat > PRICING.md << 'PRICE'
-# 💰 AI Workflow Architect - Pricing
+          if [ ! -f "PRICING.md" ]; then
+            cat > PRICING.md << 'PRICE'
+# 💰 Pricing
 
-## 🌟 What You Get
+## Starter - $47
+All workflows + setup guide
 
-### Self-Healing CI/CD System
-- 5-layer pyramid auto-fix architecture
-- Catches errors before you see them
-- Auto-creates PRs with fixes
-- Learns from every failure
+## Pro - $97  
++ Zapier integration + support
 
-### Daily Creative Bot
-- Improves code quality automatically
-- Generates documentation
-- Tracks TODOs and fixes them
-- Adds creative flair to commits
-
-### Zapier Integration Ready
-- Webhook endpoints configured
-- Twin bot system architecture
-- Sync with 5000+ apps
-- Business automation ready
-
-## 💵 Pricing Tiers
-
-### Starter - $47
-- All workflow files
-- Setup guide
-- 30-day email support
-
-### Pro - $97
-- Everything in Starter
-- Zapier twin bot setup
-- Custom integrations guide
-- 90-day priority support
-
-### Enterprise - $297
-- Everything in Pro
-- 1-hour setup call
-- Custom bot development
-- Lifetime updates
-
-**ROI**: Save 10+ hours/week on CI/CD maintenance
-**Value**: $500/month in dev time saved
-
-Ready to automate? Start with Starter!
+## Enterprise - $297
++ Custom setup + lifetime updates
 PRICE
+            git add PRICING.md
+            echo "✅ Created PRICING.md"
+          fi
           
-          git add PRICING.md
-          echo "💰 Pricing created!"
-          
-      - name: "🎥 Create demo assets list"
-        if: steps.backlog.outputs.need_demo == 'true'
-        run: |
-          cat > DEMO_CHECKLIST.md << 'DEMO'
-# 🎬 Demo Assets Needed for Sale
+          if [ ! -f "FEATURES.md" ]; then
+            cat > FEATURES.md << 'FEAT'
+# ✨ Features
 
-## Quick Wins (Do These Now):
-- [ ] Screenshot of green checks in Actions
-- [ ] GIF of self-healing workflow in action
-- [ ] Before/After comparison
-- [ ] 30-second demo video
-
-## Zapier Twin Bot (Ask twin to do):
-- [ ] Create Gumroad product listing
-- [ ] Set up payment links
-- [ ] Create email sequences
-- [ ] Set up customer onboarding
-
-## GitHub Bot (This bot does):
-- [x] Create pricing page
-- [ ] Add badges to README
-- [ ] Create installation guide
-- [ ] Package as template repo
-
-Focus: SHIP > PERFECT
-DEMO
-          
-          git add DEMO_CHECKLIST.md
-          echo "🎥 Demo checklist created!"
-          
-      - name: "📦 Package for sale"
-        run: |
-          echo "📦 Creating sellable package..."
-          
-          # Create a FEATURES.md highlighting value
-          cat > FEATURES.md << 'FEAT'
-# ✨ Key Features That Make Money
-
-## 🚀 What Makes This Special:
-
-1. **Self-Healing** - Fixes itself automatically
-2. **Twin Bot System** - GitHub + Zapier working together
-3. **Creative AI** - Makes code delightful
-4. **Zero Maintenance** - Set and forget
-5. **Scalable** - Works for any project
-
-## 📊 Metrics:
-- 90% reduction in failed builds
-- 10 hours/week time savings
-- $500/month value
-
-## 🎯 Perfect For:
-- Solo developers
-- Small teams
-- Agency workflows
-- SaaS products
-
-Stop fixing CI/CD. Start shipping features.
+1. Self-Healing CI/CD
+2. Auto-Fix System  
+3. Feature Suggester
+4. Zapier Ready
+5. Zero Maintenance
 FEAT
+            git add FEATURES.md
+            echo "✅ Created FEATURES.md"
+          fi
           
-          git add FEATURES.md
-          echo "✅ Package ready!"
-          
-      - name: "📊 Report to twin"
+      - name: "💾 Commit improvements"
         run: |
-          REPORT='{
-            "bot_id": "github-feature-shipper",
-            "completed_tasks": [
-              "Created pricing page",
-              "Listed key features",
-              "Prepared demo checklist"
-            ],
-            "asking_twin_to_do": [
-              "Create Gumroad listing",
-              "Set up payment processing",
-              "Create landing page"
-            ],
-            "estimated_days_to_launch": 2,
-            "focus_split": "10% maintenance, 90% shipping"
-          }'
-          
-          echo "$REPORT"
-          
-          # curl -X POST "${{ secrets.ZAPIER_TWIN_WEBHOOK }}" \
-          #   -H "Content-Type: application/json" \
-          #   -d "$REPORT"
-          
-      - name: "💾 Commit WORK (not self-improvement)"
-        run: |
-          git config user.name "Feature Shipper 🚀"
-          git config user.email "shipper@workflow.ai"
-          
-          git add -A
+          git config user.name "Feature Suggester Bot"
+          git config user.email "suggester@workflow.ai"
           
           if ! git diff --staged --quiet; then
-            git commit -m "🚀 SHIPPED: Sellable features added
+            git commit -m "💡 Auto-generated sellable features
             
-            💰 Created pricing
-            ✨ Listed features  
-            🎯 Ready for market
-            
-            Twin bot: Please create Gumroad listing"
+            Created by Feature Suggester bot
+            - Added missing documentation
+            - Made product more sellable
+            - Ready for Gumroad listing"
             git push
-            echo "✅ WORK committed!"
+            echo "✅ Improvements shipped!"
           else
-            echo "✨ All features already shipped!"
+            echo "✨ All features present"
           fi
           
-      - name: "🎉 Success - BUSINESS focused"
+      - name: "🎉 Success"
         if: success()
         run: |
-          echo "💰 FOCUS: Making money, not just fixing code"
-          echo "🤝 Twin bots working together"
-          echo "🚀 Shipping > Self-improving"
-          echo "✅ Revenue-generating features added!"
+          echo "Feature Suggester completed successfully"
+          echo "Product is getting closer to sale-ready"
