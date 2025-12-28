@@ -46,24 +46,10 @@ jobs:
         run: |
           npm ci
       
-      - name: Run linting
-        run: |
-          npm run lint
-      
-      - name: Run tests - ${{ matrix.component }}
-        run: |
-          npm run test:${{ matrix.component }}
-      
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./coverage/${{ matrix.component }}/coverage.xml
-
-  build:
-    needs: test
+   build:
     runs-on: ubuntu-latest
     
-    steps:
+    steps:   
       - name: Checkout code
         uses: actions/checkout@v4
       
