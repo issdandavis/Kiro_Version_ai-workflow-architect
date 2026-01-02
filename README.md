@@ -1,76 +1,145 @@
-# AI Orchestration Hub - Production Deployment Guide
+# AI Workflow Architect
 
-A full-stack AI multi-agent orchestration platform with **free-first AI models**, cost controls, secure integrations, and centralized memory.
+A powerful full-stack AI orchestration platform that lets you coordinate multiple AI providers, manage integrations, and build automated workflows.
 
-## 💡 Key Highlights
+## ✨ Features
 
-- 🎉 **Free-First AI Strategy**: Run on $0-5/month using Ollama and open-source models
-- 🤖 **Multi-Agent Orchestration**: Coordinate multiple AI models with intelligent selection
-- 🔐 **Integration Vault**: Connect GitHub, Google Drive, Dropbox, Notion, Zapier, and more
-- 💰 **Smart Cost Controls**: Automatic fallback from expensive to free models
-- 🧠 **Memory Layer**: Centralized and decentralized memory with keyword search
-- 📊 **Cost Dashboard**: Real-time tracking and budget alerts
-- 🔒 **Security**: RBAC, audit logging, rate limiting, and secure credential storage
-- 🌿 **Branch-First Git**: Safe repository operations (no direct main pushes)
+- **Multi-AI Orchestration** - Use OpenAI, Anthropic Claude, Google Gemini, Groq, xAI Grok, and Perplexity
+- **AI Roundtable** - Have multiple AI models discuss and collaborate on problems
+- **Integration Hub** - Connect GitHub, Google Drive, Dropbox, Notion, and more
+- **Workflow Automation** - Build and run automated task sequences
+- **Secure Credential Vault** - Safely store and manage API keys with encryption
+- **Cost Tracking** - Monitor AI usage and set budget limits
+- **Enterprise Security** - RBAC, 2FA, audit logging, rate limiting
+- **Stripe Payments** - Built-in subscription and payment handling
 
-> **💸 Cost Optimization**: See [docs/COST_OPTIMIZATION_QUICK_REF.md](docs/COST_OPTIMIZATION_QUICK_REF.md) for how to minimize AI costs.
+## 🚀 Quick Start
 
-## Features
+### Prerequisites
+- Node.js 18+ 
+- PostgreSQL database (or use [Supabase](https://supabase.com) - free tier available)
 
-- **Free-First AI Models**: Ollama (self-hosted), Groq, Together AI, Perplexity - avoid expensive APIs
-- **Multi-Agent Orchestration**: Coordinate OpenAI, Anthropic, xAI, and Perplexity models
-- **Integration Vault**: Connect GitHub, Google Drive, Dropbox, Notion, Zapier, and more
-- **Cost Governance**: Daily/monthly budgets with automatic enforcement
-- **Memory Layer**: Centralized and decentralized memory with keyword search
-- **Audit Logging**: Complete audit trail for all operations
-- **RBAC**: Owner, Admin, Member, Viewer roles
-- **Rate Limiting**: Protection against abuse
-- **Branch-First Git**: Safe repository operations (no direct main pushes)
-
-## Required Environment Variables (Replit Secrets)
-
-### Core (Required)
-- `DATABASE_URL` - PostgreSQL connection string (auto-configured by Replit)
-- `SESSION_SECRET` - Secure random string for session encryption
-- `APP_ORIGIN` - Your app URL (e.g., https://your-app.replit.app)
-
-### AI Providers (Recommended for Free/Cheap Tier)
-- `OLLAMA_BASE_URL` - Ollama server URL (default: http://localhost:11434) - **FREE**
-- `GROQ_API_KEY` - Groq API key for cheap fallback ($0.59/1M tokens)
-- `TOGETHER_API_KEY` - Together AI key for cheap fallback ($0.90/1M tokens)
-- `HUGGINGFACE_TOKEN` - HuggingFace token for free inference
-
-### AI Providers (Expensive - User Keys Only)
-- `OPENAI_API_KEY` - OpenAI API key ($3/1M tokens) - Only use if user provides their own key
-- `ANTHROPIC_API_KEY` - Anthropic (Claude) API key ($3-15/1M tokens) - User key only
-- `XAI_API_KEY` - xAI (Grok) API key - User key only
-- `PERPLEXITY_API_KEY` - Perplexity API key ($0.05/1M tokens) - Cheap option for search
-
-### Integrations (Optional - add as needed)
-- `GITHUB_TOKEN` - GitHub Personal Access Token for repo operations
-- `GOOGLE_DRIVE_CLIENT_ID` - Google Drive OAuth client ID
-- `GOOGLE_DRIVE_CLIENT_SECRET` - Google Drive OAuth secret
-- `DROPBOX_ACCESS_TOKEN` - Dropbox access token
-- `NOTION_TOKEN` - Notion integration token
-
-## Quick Start
-
-### Development
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/ai-workflow-architect.git
+cd ai-workflow-architect
+
 # Install dependencies
 npm install
 
-# Push database schema
-npm run db:push
-
-# Start dev server (backend + frontend)
-npm run dev
+# Copy environment template
+cp .env.example .env
 ```
 
-The app will be available at `http://localhost:5000`
+### Configure Database
 
-### Production Build
+**Option 1: Supabase (Recommended - Free)**
+1. Create account at [supabase.com](https://supabase.com)
+2. Create new project
+3. Go to Settings → Database → Connection string
+4. Copy the URI and paste in `.env` as `DATABASE_URL`
+
+**Option 2: Local PostgreSQL**
+```bash
+# Create database
+createdb ai_workflow_db
+
+# Update .env
+DATABASE_URL=postgresql://postgres:password@localhost:5432/ai_workflow_db
+```
+
+### Push Database Schema
+
+```bash
+npm run db:push
+```
+
+### Start Development Servers
+
+**Windows:**
+```bash
+# Double-click start-dev.bat
+# OR run both commands in separate terminals:
+npm run dev:client    # Frontend on http://localhost:5000
+npm run dev:server    # Backend on http://localhost:3000
+```
+
+**Mac/Linux:**
+```bash
+# Terminal 1 - Frontend
+npm run dev:client
+
+# Terminal 2 - Backend  
+npm run dev:server
+```
+
+### Open the App
+Visit **http://localhost:5000** in your browser!
+
+## 📁 Project Structure
+
+```
+├── client/           # React frontend (Vite + TypeScript)
+│   ├── src/
+│   │   ├── pages/    # Application pages
+│   │   ├── components/
+│   │   └── hooks/
+│   └── index.html
+├── server/           # Express backend
+│   ├── services/     # AI providers, orchestration
+│   ├── middleware/   # Auth, rate limiting
+│   └── routes.ts     # API endpoints
+├── shared/           # Shared types & schema
+│   └── schema.ts     # Database schema (Drizzle ORM)
+└── docs/             # Documentation
+```
+
+## 🔧 Configuration
+
+### Required Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `SESSION_SECRET` | Random 32+ character string |
+| `PORT` | Backend port (default: 3000) |
+
+### AI Provider Keys (Optional - add what you need)
+
+| Variable | Provider | Get Key |
+|----------|----------|---------|
+| `OPENAI_API_KEY` | OpenAI GPT | [platform.openai.com](https://platform.openai.com/api-keys) |
+| `ANTHROPIC_API_KEY` | Claude | [console.anthropic.com](https://console.anthropic.com/) |
+| `GOOGLE_AI_API_KEY` | Gemini | [makersuite.google.com](https://makersuite.google.com/app/apikey) |
+| `GROQ_API_KEY` | Groq | [console.groq.com](https://console.groq.com/keys) |
+| `XAI_API_KEY` | Grok | [console.x.ai](https://console.x.ai/) |
+| `PERPLEXITY_API_KEY` | Perplexity | [perplexity.ai/settings](https://www.perplexity.ai/settings/api) |
+
+## 📡 API Endpoints
+
+### Authentication
+- `POST /api/auth/signup` - Create account
+- `POST /api/auth/login` - Login
+- `POST /api/auth/logout` - Logout
+- `GET /api/auth/me` - Get current user
+
+### AI & Agents
+- `POST /api/agents/run` - Start AI agent task
+- `GET /api/agents/run/:id` - Get task status
+- `GET /api/ai/providers` - List available AI providers
+
+### Integrations
+- `GET /api/integrations` - List connected integrations
+- `POST /api/integrations/connect` - Connect new integration
+
+### Credentials Vault
+- `GET /api/vault/credentials` - List stored credentials
+- `POST /api/vault/credentials` - Store new API key
+- `POST /api/vault/credentials/test` - Test API key validity
+
+## 🏗️ Production Deployment
 
 ```bash
 # Build for production
@@ -80,164 +149,41 @@ npm run build
 npm run start
 ```
 
-## Deployment Checklist
+### Deploy to:
+- **Vercel** - `vercel.json` included
+- **Replit** - `.replit` config included
+- **Railway/Render** - Use standard Node.js deployment
 
-- [ ] **Add Required Secrets**: SESSION_SECRET, APP_ORIGIN
-- [ ] **Add AI Provider Keys**: At least one of OPENAI_API_KEY, ANTHROPIC_API_KEY, XAI_API_KEY
-- [ ] **Verify Database**: DATABASE_URL is set (Replit auto-configures this)
-- [ ] **Test Auth Flow**: Create account, login, logout
-- [ ] **Test Agent Run**: Execute at least one agent with stub or real provider
-- [ ] **Configure Budgets**: Set daily/monthly budgets via API
-- [ ] **Test Integrations**: Connect at least one integration
-- [ ] **Review Audit Logs**: Verify logging works via GET /api/audit
-- [ ] **Deploy**: Use Replit's "Publish" button to make the app live
+## 🔒 Security Features
 
-## API Endpoints
+- **Password hashing** with bcrypt
+- **Session management** with secure cookies
+- **Rate limiting** on all endpoints
+- **CORS protection**
+- **Helmet security headers**
+- **Encrypted credential storage** (AES-256-GCM)
+- **Audit logging** for all sensitive operations
+- **Role-based access control** (Owner, Admin, Member, Viewer)
 
-### Authentication
-- `POST /api/auth/signup` - Create account
-- `POST /api/auth/login` - Login
-- `POST /api/auth/logout` - Logout
-- `GET /api/auth/me` - Get current user
+## 📚 Documentation
 
-### Projects
-- `GET /api/projects` - List projects
-- `POST /api/projects` - Create project
+- [Cost Optimization Guide](docs/COST_OPTIMIZATION_QUICK_REF.md)
+- [Full Feature List](docs/FULL_FEATURE_LIST.md)
+- [Project Documentation](docs/PROJECT_DOCUMENTATION.md)
+- [Deployment Guide](DEPLOYMENT_GUIDE.md)
 
-### Integrations
-- `GET /api/integrations` - List integrations
-- `POST /api/integrations/connect` - Connect provider
-- `POST /api/integrations/disconnect` - Disconnect provider
+## 🤝 Contributing
 
-### Agent Orchestration
-- `POST /api/agents/run` - Start agent run
-- `GET /api/agents/run/:runId` - Get run status
-- `GET /api/agents/stream/:runId` - Stream run logs (SSE)
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-### Memory
-- `POST /api/memory/add` - Add memory item
-- `GET /api/memory/search?projectId=X&q=query` - Search memory
+## 📄 License
 
-### Git Operations
-- `GET /api/repos` - List configured repos
-- `POST /api/repos/commit` - Create branch-first commit
+MIT License - see [LICENSE](LICENSE) for details.
 
-### Health
-- `GET /api/health` - Health check
+---
 
-## Security Features
-
-- **Helmet**: Security headers
-- **CORS**: Locked to APP_ORIGIN
-- **Rate Limiting**: 
-  - Auth: 5 attempts per 15 min
-  - API: 100 requests per 15 min
-  - Agents: 10 runs per minute
-- **Session Management**: HTTP-only cookies
-- **RBAC**: Role-based access control
-- **Audit Logging**: All sensitive operations logged
-
-## Architecture
-
-```
-client/              # React frontend (Vite)
-  src/
-    pages/          # All UI pages
-    components/     # Shared components
-    
-server/             # Express backend
-  auth.ts           # Authentication & RBAC
-  db.ts             # Database connection
-  routes.ts         # All API routes
-  storage.ts        # Database operations
-  middleware/       # Rate limiting, cost control
-  services/         # Orchestrator, provider adapters
-  
-shared/             # Shared types
-  schema.ts         # Drizzle schema & types
-```
-
-## Provider Adapters
-
-The system includes safe stub adapters for all providers. When API keys are not configured:
-- Providers return a "not configured" message
-- UI remains functional
-- Logs indicate missing configuration
-- No crashes or errors
-
-To enable real provider calls, add the appropriate API keys to Replit Secrets.
-
-## Cost Optimization Strategy 💰
-
-This platform uses a **free-first approach** to minimize AI costs:
-
-### Tier 1: Free (Primary) 🎉
-- **Ollama** (self-hosted): $0/month
-- Models: llama3.1:8b, codellama:13b, mistral:7b, phi-3
-- Setup: `curl https://ollama.ai/install.sh | sh && ollama pull llama3.1:8b`
-
-### Tier 2: Cheap Fallback 💚
-- **Groq**: $0.59/1M tokens (5x cheaper than OpenAI)
-- **Together AI**: $0.90/1M tokens (3x cheaper than OpenAI)
-- **Perplexity**: $0.05/1M tokens (60x cheaper than OpenAI)
-
-### Tier 3: Expensive (User Keys Only) 💸
-- **OpenAI**: $3-10/1M tokens - Only use with user's own API key
-- **Claude**: $3-15/1M tokens - Only use with user's own API key
-
-**Target**: <$5/month per user by using free models for 90%+ of requests.
-
-📖 **See**: [Cost Optimization Quick Reference](docs/COST_OPTIMIZATION_QUICK_REF.md) for details.
-
-## Cost Controls
-
-1. **Set Budgets**: Create daily/monthly budgets via API
-2. **Automatic Enforcement**: Agent runs blocked when budget exceeded
-3. **Smart Model Selection**: Automatically choose cheapest model for task
-4. **Cost Tracking**: Each run estimates and tracks costs
-5. **Audit Trail**: All cost events logged
-
-Example budget creation:
-```bash
-curl -X POST /api/budgets \
-  -H "Content-Type: application/json" \
-  -d '{"orgId":"<org-id>","period":"daily","limitUsd":"10.00"}'
-```
-
-## Troubleshooting
-
-### "Database connection failed"
-- Verify DATABASE_URL is set in Secrets
-- Run `npm run db:push` to sync schema
-
-### "Session secret not set"
-- Add SESSION_SECRET to Replit Secrets (use a long random string)
-
-### "Provider not configured"
-- Add the appropriate API key to Replit Secrets
-- Example: OPENAI_API_KEY for OpenAI
-
-### "Budget exceeded"
-- Check current budget: GET /api/budgets
-- Reset or increase budget limits
-
-## Documentation
-
-- 📘 [Cost Optimization Quick Reference](docs/COST_OPTIMIZATION_QUICK_REF.md) - Fast guide to minimizing AI costs
-- 📗 [Free-First AI Strategy Issue](docs/FREE_FIRST_AI_STRATEGY_ISSUE.md) - Complete implementation plan
-- 📙 [Free AI Implementation Guide](docs/FREE_AI_IMPLEMENTATION_GUIDE.md) - Developer guide with code templates
-- 📕 [Full Feature List](docs/FULL_FEATURE_LIST.md) - Complete feature documentation
-- 📔 [Project Documentation](docs/PROJECT_DOCUMENTATION.md) - Detailed project information
-
-## Support
-
-For issues or questions, check:
-1. Replit logs for error messages
-2. Database connection status
-3. Environment variables in Secrets
-4. Audit logs via API for operation history
-5. [Documentation](docs/) for implementation guides
-
-## License
-
-MIT
+Built with ❤️ using React, Express, TypeScript, and PostgreSQL
