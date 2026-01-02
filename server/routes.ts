@@ -18,6 +18,7 @@ import { getProviderAdapter } from "./services/providerAdapters";
 import { getAvailableProviders } from "./services/aiPriorityManager";
 import crypto from "crypto";
 import shopifyRouter from "./shopify";
+import autonomyRoutes from "./services/autonomyRoutes";
 
 const VERSION = "1.0.0";
 
@@ -57,6 +58,9 @@ export async function registerRoutes(
 
   // Shopify integration routes
   app.use("/api/shopify", shopifyRouter);
+
+  // AI Autonomy and Developer Mode routes
+  app.use("/api", autonomyRoutes);
 
   // Health endpoint
   app.get("/api/health", (req, res) => {

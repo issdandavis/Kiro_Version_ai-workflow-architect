@@ -30,6 +30,8 @@ import WebsiteBuilder from "@/pages/WebsiteBuilder";
 import ShopifyOnboarding from "@/pages/ShopifyOnboarding";
 import ShopifyDashboard from "@/pages/ShopifyDashboard";
 import Workbench from "@/pages/Workbench";
+import AutonomyMode from "@/pages/AutonomyMode";
+import DeveloperMode from "@/pages/DeveloperMode";
 
 const PUBLIC_ROUTES = ["/", "/shop", "/login", "/signup", "/gallery"];
 
@@ -62,6 +64,8 @@ function Router() {
       <Route path="/workspaces" component={Workspaces} />
       <Route path="/website-builder" component={WebsiteBuilder} />
       <Route path="/workbench" component={Workbench} />
+      <Route path="/autonomy" component={AutonomyMode} />
+      <Route path="/developer" component={DeveloperMode} />
       
       {/* Shopify Routes */}
       <Route path="/shopify/onboarding" component={ShopifyOnboarding} />
