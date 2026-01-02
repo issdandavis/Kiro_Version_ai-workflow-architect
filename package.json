@@ -1,8 +1,18 @@
 {
   "name": "ai-workflow-platform",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "license": "MIT",
+  "description": "Universal AI workflow orchestration platform with multi-provider support, autonomy mode, and self-improvement capabilities",
+  "author": "AI Workflow Team",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kiro_Version_ai-workflow-architect/ai-workflow-platform"
+  },
+  "keywords": ["ai", "workflow", "automation", "multi-agent", "orchestration", "saas"],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev:client": "vite dev --port 5000",
     "dev:server": "cross-env NODE_ENV=development PORT=3000 tsx server/index.ts",

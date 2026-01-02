@@ -1,3 +1,15 @@
+/**
+ * Autonomy Mode Page v2.0
+ * 
+ * Allows AI to take autonomous control of the platform.
+ * Features supervised and fully autonomous modes with
+ * approval workflows and action history.
+ * 
+ * @version 2.0.0
+ * @component AutonomyMode
+ * @security Requires explicit user consent for autonomous actions
+ */
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Layout from "@/components/dashboard/Layout";
 import { 
   Bot, 
   Play, 
@@ -23,7 +36,9 @@ import {
   Shield,
   Eye,
   Settings,
-  History
+  History,
+  Sparkles,
+  Brain
 } from "lucide-react";
 
 type AutonomyLevel = "off" | "supervised" | "autonomous";
@@ -175,32 +190,35 @@ export default function AutonomyMode() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Bot className="h-8 w-8" />
-            AI Autonomy Mode
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Let AI take control and execute tasks autonomously
-          </p>
+    <Layout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <Bot className="h-8 w-8" />
+              AI Autonomy Mode
+              <Badge variant="outline" className="ml-2">v2.0</Badge>
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Let AI take control and execute tasks autonomously with self-improvement capabilities
+            </p>
+          </div>
+          {activeSessions.length > 0 && (
+            <Badge variant="destructive" className="animate-pulse">
+              {activeSessions.length} Active Session{activeSessions.length > 1 ? "s" : ""}
+            </Badge>
+          )}
         </div>
-        {activeSessions.length > 0 && (
-          <Badge variant="destructive" className="animate-pulse">
-            {activeSessions.length} Active Session{activeSessions.length > 1 ? "s" : ""}
-          </Badge>
-        )}
-      </div>
 
-      <Alert variant="destructive">
-        <AlertTriangle className="h-4 w-4" />
-        <AlertTitle>Powerful Feature</AlertTitle>
-        <AlertDescription>
-          Autonomy mode allows AI to perform actions on your behalf. Use with caution.
-          Start with "Supervised" mode to review actions before they execute.
-        </AlertDescription>
-      </Alert>
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Powerful Feature - Use Responsibly</AlertTitle>
+          <AlertDescription>
+            Autonomy mode allows AI to perform actions on your behalf including code modifications.
+            Start with "Supervised" mode to review actions before they execute.
+            All actions are logged and can be rolled back.
+          </AlertDescription>
+        </Alert>
 
       <Tabs defaultValue="control" className="space-y-4">
         <TabsList>
@@ -261,10 +279,11 @@ export default function AutonomyMode() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="openai">OpenAI</SelectItem>
-                        <SelectItem value="anthropic">Anthropic</SelectItem>
-                        <SelectItem value="google">Google</SelectItem>
-                        <SelectItem value="groq">Groq</SelectItem>
+                        <SelectItem value="openai">OpenAI (GPT-4o)</SelectItem>
+                        <SelectItem value="anthropic">Anthropic (Claude)</SelectItem>
+                        <SelectItem value="google">Google (Gemini)</SelectItem>
+                        <SelectItem value="groq">Groq (Llama)</SelectItem>
+                        <SelectItem value="xai">xAI (Grok)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -275,10 +294,14 @@ export default function AutonomyMode() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-                        <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
+                        <SelectItem value="gpt-4o">GPT-4o (Recommended)</SelectItem>
+                        <SelectItem value="gpt-4o-mini">GPT-4o Mini (Fast)</SelectItem>
                         <SelectItem value="claude-3-5-sonnet">Claude 3.5 Sonnet</SelectItem>
+                        <SelectItem value="claude-3-opus">Claude 3 Opus</SelectItem>
                         <SelectItem value="gemini-pro">Gemini Pro</SelectItem>
+                        <SelectItem value="gemini-2.0-flash">Gemini 2.0 Flash</SelectItem>
+                        <SelectItem value="llama-3.1-70b">Llama 3.1 70B</SelectItem>
+                        <SelectItem value="grok-2">Grok 2</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

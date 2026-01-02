@@ -1,3 +1,15 @@
+/**
+ * Developer Mode Page v2.0
+ * 
+ * In-app code editor for self-improvement capabilities.
+ * Allows direct modification of source code with AI assistance,
+ * version control, and rollback functionality.
+ * 
+ * @version 2.0.0
+ * @component DeveloperMode
+ * @security Requires elevated permissions, all changes logged
+ */
+
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +23,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import Layout from "@/components/dashboard/Layout";
 import { 
   Code, 
   FolderTree, 
@@ -28,7 +41,10 @@ import {
   Plus,
   Trash2,
   History,
-  RefreshCw
+  RefreshCw,
+  GitBranch,
+  Terminal,
+  Brain
 } from "lucide-react";
 
 interface FileItem {
@@ -306,35 +322,39 @@ export default function DeveloperMode() {
 
   if (!sessionId) {
     return (
-      <div className="container mx-auto p-6">
+      <Layout>
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Code className="h-6 w-6" />
               Developer Mode
+              <Badge variant="outline" className="ml-2">v2.0</Badge>
             </CardTitle>
             <CardDescription>
-              Edit the application's source code directly. Enable self-improvement capabilities.
+              Edit the application's source code directly. Enable self-improvement capabilities for AI-driven enhancements.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Warning</AlertTitle>
+              <AlertTitle>Warning - Advanced Feature</AlertTitle>
               <AlertDescription>
                 Developer mode allows direct modification of the application's source code.
-                Changes can break the application. Use with caution.
+                Changes can break the application. All modifications are logged and can be rolled back.
+                Use with caution and always test changes in a safe environment first.
               </AlertDescription>
             </Alert>
 
             <div className="space-y-2">
-              <h3 className="font-medium">What you can do:</h3>
+              <h3 className="font-medium">Self-Improvement Capabilities:</h3>
               <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                <li>Browse and edit source files</li>
-                <li>Create new components and features</li>
-                <li>Use AI to improve code automatically</li>
+                <li>Browse and edit source files with syntax highlighting</li>
+                <li>Create new components, pages, and features</li>
+                <li>Use AI to improve code automatically with explanations</li>
                 <li>Rollback changes if something breaks</li>
                 <li>Search across the entire codebase</li>
+                <li>Version control integration for safe experimentation</li>
+                <li>AI-powered code review and suggestions</li>
               </ul>
             </div>
 
@@ -348,7 +368,7 @@ export default function DeveloperMode() {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </Layout>
     );
   }
 

@@ -1,3 +1,16 @@
+/**
+ * AI Workflow Platform - Main Application v2.0
+ * 
+ * Universal React application with:
+ * - Multi-page routing
+ * - AI assistant integration
+ * - PWA support
+ * - Autonomy and Developer modes
+ * 
+ * @version 2.0.0
+ * @framework React 19 + Wouter + TanStack Query
+ */
+
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -33,7 +46,11 @@ import Workbench from "@/pages/Workbench";
 import AutonomyMode from "@/pages/AutonomyMode";
 import DeveloperMode from "@/pages/DeveloperMode";
 
-const PUBLIC_ROUTES = ["/", "/shop", "/login", "/signup", "/gallery"];
+// Platform version for display
+const PLATFORM_VERSION = "2.0.0";
+
+// Routes that don't require authentication
+const PUBLIC_ROUTES = ["/", "/shop", "/login", "/signup", "/gallery", "/status"];
 
 function Router() {
   return (
@@ -95,6 +112,12 @@ function App() {
         <Router />
         <ConditionalAssistant />
         <PWAInstallPrompt />
+        {/* Platform version indicator (dev only) */}
+        {import.meta.env.DEV && (
+          <div className="fixed bottom-2 left-2 text-xs text-muted-foreground/50 font-mono">
+            v{PLATFORM_VERSION}
+          </div>
+        )}
       </TooltipProvider>
     </QueryClientProvider>
   );

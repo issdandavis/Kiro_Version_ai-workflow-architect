@@ -1,3 +1,16 @@
+/**
+ * Database Connection - PostgreSQL v2.0
+ * 
+ * Production-ready PostgreSQL connection with:
+ * - Connection pooling
+ * - SSL support
+ * - Error handling
+ * - Health checks
+ * 
+ * @version 2.0.0
+ * @database PostgreSQL via node-postgres
+ */
+
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pkg from 'pg';
 const { Pool } = pkg;
@@ -9,19 +22,23 @@ let dbInstance: ReturnType<typeof drizzle> | null = null;
 function getPool(): pkg.Pool {
   if (!pool) {
     if (!process.env.DATABASE_URL) {
-      throw new Error("DATABASE_URL environment variable is not set");
+      throw new Error("DATABASE_URL environment variable is not set. Use SQLite mode for development.");
     }
     
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-      max: 5,
+      max: parseInt(process.env.DB_POOL_SIZE || "5", 10),
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
     });
     
     pool.on('error', (err) => {
-      console.error('Unexpected database pool error:', err);
+      console.error('Database pool error:', err);
+    });
+    
+    pool.on('connect', () => {
+      console.log('Database connection established');
     });
   }
   return pool;

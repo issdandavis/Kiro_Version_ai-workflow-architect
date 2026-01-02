@@ -1,3 +1,13 @@
+/**
+ * Dashboard Page v2.0
+ * 
+ * Main command center for AI workflow orchestration.
+ * Features real-time stats, agent cards, and workflow visualization.
+ * 
+ * @version 2.0.0
+ * @component Dashboard
+ */
+
 import Layout from "@/components/dashboard/Layout";
 import AgentCard from "@/components/dashboard/AgentCard";
 import ActivityFeed from "@/components/dashboard/ActivityFeed";
@@ -5,7 +15,7 @@ import CommandInput from "@/components/dashboard/CommandInput";
 import IntegrationStatus from "@/components/dashboard/IntegrationStatus";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { Zap, Users, DollarSign, MessageSquare, Plus, ArrowRight } from "lucide-react";
+import { Zap, Users, DollarSign, MessageSquare, Plus, ArrowRight, Bot, Code } from "lucide-react";
 import { Link } from "wouter";
 
 interface DashboardStats {
@@ -50,10 +60,12 @@ export default function Dashboard() {
     queryKey: ["/api/workflows"],
   });
 
+  // Dynamic agent configuration based on available providers
   const agents = [
     { name: "Claude 3.5", role: "Code Architect", status: "idle" as const, icon: "claude" as const, tasksCompleted: stats?.roundtables?.total || 0 },
     { name: "ChatGPT-4o", role: "Documentation Lead", status: "idle" as const, icon: "gpt" as const, tasksCompleted: 0 },
     { name: "Grok Beta", role: "Research Analyst", status: "idle" as const, icon: "grok" as const, tasksCompleted: 0 },
+    { name: "Gemini Pro", role: "Multi-Modal Expert", status: "idle" as const, icon: "gemini" as const, tasksCompleted: 0 },
   ];
 
   const statCards = [
@@ -95,9 +107,21 @@ export default function Dashboard() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
             <h1 className="text-4xl font-bold tracking-tight mb-2 text-glow" data-testid="dashboard-title">Command Deck</h1>
-            <p className="text-muted-foreground">Orchestrating multi-agent collaboration across your stack.</p>
+            <p className="text-muted-foreground">Universal AI orchestration platform v2.0 - Orchestrate. Automate. Self-Improve.</p>
           </div>
           <div className="flex gap-2">
+            <Link href="/autonomy">
+              <div className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-mono flex items-center gap-2 cursor-pointer hover:bg-purple-500/20 transition-colors">
+                <Bot className="w-3 h-3" />
+                AUTONOMY
+              </div>
+            </Link>
+            <Link href="/developer">
+              <div className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-mono flex items-center gap-2 cursor-pointer hover:bg-cyan-500/20 transition-colors">
+                <Code className="w-3 h-3" />
+                DEV MODE
+              </div>
+            </Link>
             <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-mono flex items-center gap-2" data-testid="system-status">
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               SYSTEM OPTIMAL

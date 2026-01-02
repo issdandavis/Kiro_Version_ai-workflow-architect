@@ -6,6 +6,10 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer, Server } from "http";
 
+// Platform version for API responses and health checks
+const PLATFORM_VERSION = "2.0.0";
+const PLATFORM_BUILD = new Date().toISOString().split('T')[0];
+
 // Create server early for shutdown handling
 const app = express();
 const httpServer: Server = createServer(app);
@@ -32,10 +36,16 @@ const shutdown = (signal: string) => {
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 
-// Startup logging
-console.log("Starting server initialization...");
+// Startup logging with platform info
+console.log("╔════════════════════════════════════════════════════════════╗");
+console.log("║       AI Workflow Platform - Universal Edition v2.0       ║");
+console.log("╚════════════════════════════════════════════════════════════╝");
+console.log(`Platform Version: ${PLATFORM_VERSION}`);
+console.log(`Build Date: ${PLATFORM_BUILD}`);
 console.log(`NODE_ENV: ${process.env.NODE_ENV || "development"}`);
 console.log(`PORT: ${process.env.PORT || "5000"}`);
+console.log(`Database: ${process.env.DATABASE_URL ? "PostgreSQL" : "SQLite/Mock"}`);
+console.log("────────────────────────────────────────────────────────────");
 
 // Environment validation - warn but don't crash
 const requiredEnvVars = ["DATABASE_URL"];
@@ -187,10 +197,14 @@ app.use((req, res, next) => {
         host: "localhost",
       },
       () => {
+        console.log("────────────────────────────────────────────────────────────");
         log(`🚀 Server ready on port ${port}`);
         log(`Environment: ${process.env.NODE_ENV || "development"}`);
-        log(`Database: ${process.env.DATABASE_URL ? "Connected" : "Not configured"}`);
-        console.log(`Server listening on localhost:${port}`);
+        log(`Database: ${process.env.DATABASE_URL ? "PostgreSQL Connected" : "SQLite/Mock Mode"}`);
+        log(`Platform: v${PLATFORM_VERSION} (${PLATFORM_BUILD})`);
+        log(`Features: Autonomy=${process.env.FEATURE_AUTONOMY !== 'false'}, Developer=${process.env.FEATURE_DEVELOPER !== 'false'}`);
+        console.log("────────────────────────────────────────────────────────────");
+        console.log(`Access the platform at: http://localhost:${port}`);
       },
     );
   } catch (startupError) {

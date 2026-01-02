@@ -1,9 +1,24 @@
+/**
+ * Authentication Module v2.0
+ * 
+ * Universal authentication with support for:
+ * - Password-based auth with bcrypt
+ * - Session management
+ * - Role-based access control (RBAC)
+ * - API key validation
+ * - Guest access
+ * 
+ * @version 2.0.0
+ * @security bcrypt with configurable salt rounds
+ */
+
 import bcrypt from "bcrypt";
 import { Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
 import { type User, type UserRole } from "@shared/schema";
 
-const SALT_ROUNDS = 10;
+// Configurable salt rounds (higher = more secure but slower)
+const SALT_ROUNDS = parseInt(process.env.BCRYPT_SALT_ROUNDS || "10", 10);
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, SALT_ROUNDS);
@@ -13,12 +28,14 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash);
 }
 
-// Session type extension
+// Session type extension for TypeScript
 declare module "express-session" {
   interface SessionData {
     userId: string;
     orgId?: string;
     isGuest?: boolean;
+    autonomyLevel?: "off" | "supervised" | "autonomous";
+    developerModeActive?: boolean;
   }
 }
 
