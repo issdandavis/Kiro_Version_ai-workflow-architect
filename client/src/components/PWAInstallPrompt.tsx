@@ -74,7 +74,7 @@ export function PWAInstallPrompt() {
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-lg" data-testid="text-install-title">
-            Install AI Hub
+            Install App
           </h3>
           <p className="text-sm text-white/80 mt-1" data-testid="text-install-description">
             Install this app on your device for quick access and offline capabilities.

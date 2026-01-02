@@ -1,7 +1,7 @@
 {
-  "name": "AI Orchestration Hub",
-  "short_name": "AI Hub",
-  "description": "Multi-AI orchestration platform with cost controls",
+  "name": "AI Workflow Platform",
+  "short_name": "AI Platform",
+  "description": "Multi-AI orchestration platform with workflow automation and enterprise security",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",

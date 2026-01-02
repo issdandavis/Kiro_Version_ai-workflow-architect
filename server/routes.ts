@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { hashPassword, verifyPassword, requireAuth, attachUser, validateApiKey } from "./auth";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./sessionAuth";
 import { authLimiter, apiLimiter, agentLimiter } from "./middleware/rateLimiter";
 import { checkBudget } from "./middleware/costGovernor";
 import { orchestratorQueue } from "./services/orchestrator";
@@ -38,16 +38,21 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
-  // Setup Replit Auth (social login) BEFORE other routes - skip in dev if no REPL_ID
-  if (process.env.REPL_ID && process.env.REPL_ID !== 'test-client-id-12345') {
-    await setupAuth(app);
-  } else {
-    console.log('Skipping Replit auth setup for development');
+  // Setup session-based authentication
+  if (process.env.NODE_ENV === "development") {
+    console.log('Development mode: Using simplified auth');
     // Mock session middleware for development
     app.use((req, res, next) => {
-      req.user = { id: 'dev-user', email: 'dev@example.com' };
+      if (!req.session) {
+        (req as any).session = {};
+      }
+      if (!(req as any).user) {
+        (req as any).user = { id: 'dev-user', email: 'dev@example.com' };
+      }
       next();
     });
+  } else {
+    await setupAuth(app);
   }
   
   // Attach user to all requests

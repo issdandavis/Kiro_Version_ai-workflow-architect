@@ -3,7 +3,7 @@ import { pgTable, text, varchar, timestamp, integer, jsonb, decimal, boolean, in
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Sessions table for connect-pg-simple (Replit Auth)
+// Sessions table for connect-pg-simple
 export const sessions = pgTable(
   "sessions",
   {
@@ -37,7 +37,7 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type UserRole = User["role"];
 
-// Type for upserting user from OAuth (Replit Auth)
+// Type for upserting user from OAuth
 export type UpsertUser = {
   id: string;
   email: string | null;
@@ -98,7 +98,7 @@ export const insertIntegrationSchema = createInsertSchema(integrations).omit({
 export type InsertIntegration = z.infer<typeof insertIntegrationSchema>;
 export type Integration = typeof integrations.$inferSelect;
 
-// Secret references (not actual secrets - just pointers to Replit Secrets)
+// Secret references (encrypted API keys stored securely)
 export const secretsRef = pgTable("secrets_ref", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   orgId: varchar("org_id").notNull().references(() => orgs.id, { onDelete: "cascade" }),

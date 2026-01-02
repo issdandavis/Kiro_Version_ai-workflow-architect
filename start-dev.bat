@@ -1,5 +1,5 @@
 @echo off
-echo Starting AI Workflow Architect Development Environment...
+echo Starting AI Workflow Platform Development Environment...
 echo.
 echo Frontend will run on: http://localhost:5000
 echo Backend will run on: http://localhost:3000
