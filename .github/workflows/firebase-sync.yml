@@ -1,0 +1,74 @@
+name: Firebase Sync
+
+on:
+  push:
+    branches:
+      - main
+      - copilot/**
+    paths:
+      - 'docs/living-document.md'
+      - 'docs/taxonomy.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync-to-firebase:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Sync living document to Firebase
+        env:
+          FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          echo "🔄 Syncing living-document.md to Firebase..."
+          
+          # Read the living document
+          LIVING_DOC=$(cat docs/living-document.md)
+          TAXONOMY=$(cat docs/taxonomy.md)
+          
+          # Create JSON payload
+          cat > /tmp/sync-payload.json << EOF
+          {
+            "living_document": $(echo "$LIVING_DOC" | jq -Rs .),
+            "taxonomy": $(echo "$TAXONOMY" | jq -Rs .),
+            "last_updated": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "source": "github-actions",
+            "repository": "${{ github.repository }}",
+            "commit": "${{ github.sha }}"
+          }
+          EOF
+          
+          # Log the sync attempt (actual Firebase sync would require credentials)
+          echo "✅ Prepared sync payload:"
+          cat /tmp/sync-payload.json | jq .
+          
+          # TODO: Implement actual Firebase API call when credentials are configured
+          # Example:
+          # curl -X POST "https://firestore.googleapis.com/v1/projects/$PROJECT_ID/databases/(default)/documents/living_documents" \
+          #   -H "Authorization: Bearer $FIREBASE_TOKEN" \
+          #   -H "Content-Type: application/json" \
+          #   -d @/tmp/sync-payload.json
+          
+          echo "ℹ️  Firebase credentials not configured. Skipping actual sync."
+          echo "ℹ️  To enable Firebase sync, configure FIREBASE_CONFIG and FIREBASE_SERVICE_ACCOUNT secrets."
+      
+      - name: Summary
+        run: |
+          echo "### 📊 Sync Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Living Document**: Ready for sync" >> $GITHUB_STEP_SUMMARY
+          echo "- **Taxonomy**: Ready for sync" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp**: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "ℹ️ Configure Firebase secrets to enable full sync functionality." >> $GITHUB_STEP_SUMMARY
