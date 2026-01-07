@@ -18,6 +18,7 @@ import pathlib
 import requests
 from datetime import datetime
 from typing import Optional
+from urllib.parse import urlparse
 
 # Add src to path for imports
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
@@ -119,8 +120,9 @@ def extract_metadata(url: str, content: bytes, content_type: str, raw_file: str)
     if "html" in content_type.lower():
         meta["title"] = extract_title_from_html(content)
     
-    # Extract GitHub info
-    if "github.com" in url:
+    # Extract GitHub info (with strict hostname validation)
+    parsed_url = urlparse(url)
+    if parsed_url.netloc == "github.com" or parsed_url.netloc.endswith(".github.com"):
         github_info = extract_github_info(url)
         meta["github"] = github_info
         if not meta["title"]:

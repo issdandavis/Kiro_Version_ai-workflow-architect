@@ -63,7 +63,7 @@ def categorize_url(url: str) -> tuple[int, str]:
     url_lower = url.lower()
     
     # Patents & IP Filings (Major = 1)
-    if "patents.google.com" in parsed.netloc or "patent" in url_lower:
+    if parsed.netloc == "patents.google.com" or parsed.netloc.endswith(".patents.google.com") or "patent" in url_lower:
         if any(k in url_lower for k in ["debris", "orbital", "space"]):
             return (1, "A")  # Space Debris
         elif any(k in url_lower for k in ["quantum", "qkd", "key-exchange"]):
@@ -74,7 +74,7 @@ def categorize_url(url: str) -> tuple[int, str]:
             return (1, "A")  # Default to Space Debris
     
     # Academic Papers (Major = 2)
-    elif any(k in parsed.netloc for k in ["arxiv.org", "acm.org", "ieee.org"]) or "paper" in url_lower:
+    elif any(parsed.netloc == k or parsed.netloc.endswith(f".{k}") for k in ["arxiv.org", "acm.org", "ieee.org"]) or "paper" in url_lower:
         if any(k in url_lower for k in ["quantum", "pqc", "post-quantum"]):
             return (2, "A")  # Quantum Computing
         elif any(k in url_lower for k in ["routing", "spatial", "topology"]):
@@ -85,7 +85,7 @@ def categorize_url(url: str) -> tuple[int, str]:
             return (2, "A")  # Default to Quantum Computing
     
     # GitHub Repositories (Major = 3)
-    elif "github.com" in parsed.netloc:
+    elif parsed.netloc == "github.com" or parsed.netloc.endswith(".github.com"):
         if any(k in url_lower for k in ["spiralverse", "sdk"]):
             return (3, "A")  # Spiralverse SDK
         elif any(k in url_lower for k in ["space-tor", "router", "tor"]):
@@ -96,7 +96,7 @@ def categorize_url(url: str) -> tuple[int, str]:
             return (3, "A")  # Default to Spiralverse SDK
     
     # Industry News (Major = 4)
-    elif any(k in parsed.netloc for k in ["spacenews.com", "space.com", "news"]):
+    elif any(parsed.netloc == k or parsed.netloc.endswith(f".{k}") for k in ["spacenews.com", "space.com"]) or "news" in url_lower:
         if any(k in url_lower for k in ["astroscale"]):
             return (4, "A")  # Astroscale
         elif any(k in url_lower for k in ["seraphim"]):
@@ -150,7 +150,8 @@ def extract_github_info(url: str) -> dict:
         Dict with 'owner' and 'repo' keys
     """
     parsed = urlparse(url)
-    if "github.com" in parsed.netloc:
+    # Strict hostname check for security
+    if parsed.netloc == "github.com" or parsed.netloc.endswith(".github.com"):
         parts = parsed.path.strip("/").split("/")
         if len(parts) >= 2:
             return {"owner": parts[0], "repo": parts[1]}
