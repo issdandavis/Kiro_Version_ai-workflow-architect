@@ -5,6 +5,10 @@ Utility functions for the Living Document Review system.
 import hashlib
 from urllib.parse import urlparse
 
+# Constants for ID generation
+LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+SYMBOLS = ["†", "‡", "*", "✱"]
+
 
 def slugify(url: str) -> str:
     """Generate a deterministic short hash for a URL."""
@@ -22,17 +26,25 @@ def assign_id(idx: int, major: int, section: str) -> str:
     
     Returns:
         ID string like "3.CB†"
+    
+    Note:
+        If idx exceeds 26 items per section, symbols are added in order.
+        After exhausting all 26*4=104 combinations, symbols repeat (e.g., ††).
     """
-    letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    symbols = ["†", "‡", "*", "✱"]
+    # Calculate letter position (cycles through A-Z)
+    letter_idx = idx % len(LETTERS)
+    letter = LETTERS[letter_idx]
     
-    # Calculate letter position
-    letter_idx = idx % len(letters)
-    letter = letters[letter_idx]
+    # Calculate symbol for items beyond the first 26
+    symbol_group = idx // len(LETTERS)
     
-    # Calculate symbol (if needed for items beyond 26 per section)
-    symbol_idx = idx // len(letters)
-    symbol = symbols[symbol_idx % len(symbols)] if symbol_idx > 0 else ""
+    if symbol_group > 0:
+        # Symbol index within the available symbols
+        symbol_idx = (symbol_group - 1) % len(SYMBOLS)
+        symbol_repeat = ((symbol_group - 1) // len(SYMBOLS)) + 1
+        symbol = SYMBOLS[symbol_idx] * symbol_repeat
+    else:
+        symbol = ""
     
     return f"{major}.{section}{letter}{symbol}"
 

@@ -41,6 +41,8 @@ def load_urls() -> list[str]:
     urls_file = BASE_PATH / "urls.txt"
     if not urls_file.exists():
         print(f"⚠️  urls.txt not found at {urls_file}", file=sys.stderr)
+        print("ℹ️  Create urls.txt and add URLs (one per line) to get started.", file=sys.stderr)
+        print("ℹ️  See docs/QUICK_START_LIVING_DOCS.md for examples.", file=sys.stderr)
         return []
     
     urls = []
@@ -163,12 +165,14 @@ _List related source IDs here (e.g., [1.A†], [2.BA])_
 """
     
     try:
-        # Check if issue already exists
-        existing_issues = repo.get_issues(state="all")
-        for issue in existing_issues:
-            if f"[{issue_id}]" in issue.title:
-                print(f"ℹ️  Issue already exists for {issue_id}: #{issue.number}")
-                return issue
+        # Check if issue already exists using search API for efficiency
+        search_query = f"repo:{repo.full_name} [{issue_id}] in:title"
+        existing = gh.search_issues(search_query)
+        
+        if existing.totalCount > 0:
+            existing_issue = existing[0]
+            print(f"ℹ️  Issue already exists for {issue_id}: #{existing_issue.number}")
+            return existing_issue
         
         # Create new issue
         labels = [f"major-{major}", f"section-{section}", "needs-review"]
