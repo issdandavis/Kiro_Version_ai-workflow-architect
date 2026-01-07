@@ -12,6 +12,8 @@ The Living Document Review system provides:
 - **Firebase sync** - Real-time updates to connected Studio apps
 - **Audit trail** - Complete version history via Git
 
+> **🚀 New to the system?** See [Quick Start Guide](QUICK_START_LIVING_DOCS.md) for a 5-minute setup!
+
 ## 🏗️ Architecture
 
 ```
