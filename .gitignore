@@ -9,3 +9,10 @@ vite.config.ts.*
 .env.production
 *.db
 *.sqlite
+
+# Living Document Review System
+# Note: Large files in data/raw/ should use Git LFS
+# For now, track .gitkeep but be mindful of file sizes
+__pycache__/
+*.pyc
+*.pyo
