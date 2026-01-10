@@ -2,3 +2,6 @@
 requests>=2.31.0
 beautifulsoup4>=4.12.0
 PyGithub>=2.1.0
+
+# SCBE Envelope System dependencies
+dataclasses>=0.6  # Python 3.6 compatibility (builtin in 3.7+)
