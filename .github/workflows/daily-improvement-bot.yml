@@ -47,30 +47,15 @@ jobs:
           # Fix missing .npmrc for peer deps
           if [ ! -f .npmrc ]; then
             echo "Creating .npmrc with learned settings"
-            cat > .npmrc << 'NPMRC'
-legacy-peer-deps=true
-strict-peer-dependencies=false
-NPMRC
+            printf 'legacy-peer-deps=true\nstrict-peer-dependencies=false\n' > .npmrc
           fi
           
           echo "Auto-fixes applied!"
       
       - name: "Generate Daily Log"
         run: |
-          cat > .github/DAILY_LOG.md << 'EOF'
-# Daily Improvement Report
-
-## Stats
-- Tests found: ${{ steps.health.outputs.test_count }}
-- TODOs tracked: ${{ steps.health.outputs.todo_count }}
-- Status: All Green
-
-## Auto-Enhancements
-- Code quality improved
-- Documentation updated
-
-Keep building!
-EOF
+          mkdir -p .github
+          printf '# Daily Improvement Report\n\n## Stats\n- Tests found: ${{ steps.health.outputs.test_count }}\n- TODOs tracked: ${{ steps.health.outputs.todo_count }}\n- Status: All Green\n\n## Auto-Enhancements\n- Code quality improved\n- Documentation updated\n\nKeep building!\n' > .github/DAILY_LOG.md
       
       - name: "Commit Changes"
         run: |
