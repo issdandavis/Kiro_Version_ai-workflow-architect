@@ -1,1 +1,15 @@
+# Feature Shipper Bot - DISABLED
+# This workflow is disabled to stop spam notifications
+# Uncomment the triggers below to re-enable
 
+name: Feature Shipper Bot (Disabled)
+
+on:
+  workflow_dispatch:  # Manual trigger only
+
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder
+        run: echo "This workflow is disabled. Enable triggers in workflow file to activate."
