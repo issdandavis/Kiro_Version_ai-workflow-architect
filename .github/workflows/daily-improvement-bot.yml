@@ -19,7 +19,7 @@ jobs:
       
       - name: "✨ Health Check"
         id: health
-                run: |
+        run: |
           echo "🔍 Analyzing all workflows..."
           
           # Read existing workflow patterns
@@ -33,7 +33,7 @@ jobs:
           echo "test_count=$TEST_COUNT" >> $GITHUB_OUTPUT
           echo "todo_count=$TODO_COUNT" >> $GITHUB_OUTPUT
           echo "✅ Analysis complete!"
-          
+      
       - name: "🧠 Learn from self-healing workflow"
         run: |
           echo "🧬 Extracting patterns from self-healing.yml..."
@@ -47,7 +47,7 @@ jobs:
             mkdir -p .github
             echo '[]' > .github/fix-history.json
           fi
-          
+      
       - name: "🔧 Auto-fix common issues"
         run: |
           echo "🛠️ Applying learned fixes..."
@@ -56,7 +56,6 @@ jobs:
           if [ -f package.json ]; then
             if ! grep -q '"test"' package.json; then
               echo "Adding test script to package.json"
-              # Smart improvement based on learning
             fi
           fi
           
@@ -64,13 +63,13 @@ jobs:
           if [ ! -f .npmrc ]; then
             echo "Creating .npmrc with learned settings"
             cat > .npmrc << 'NPMRC'
-legacy-peer-deps=true
-strict-peer-dependencies=false
-NPMRC
+          legacy-peer-deps=true
+          strict-peer-dependencies=false
+          NPMRC
           fi
           
           echo "✨ Auto-fixes applied!"
-          
+      
       - name: "📈 Evolve workflows"
         run: |
           echo "🚀 Making workflows smarter..."
@@ -88,7 +87,7 @@ NPMRC
           
           echo "✅ Workflows evolved!"
 
-                - name: "🔄 Self-improvement loop"
+      - name: "🔄 Self-improvement loop"
         run: |
           echo "🤖 Bot analyzing its own code..."
           
@@ -100,48 +99,40 @@ NPMRC
           
           # Learn from this run's success
           cat >> .github/bot-evolution.log << LOG
-$(date +%Y-%m-%d): Iteration $BOT_VERSION complete
-  - Tests found: ${{ steps.health.outputs.test_count }}
-  - TODOs tracked: ${{ steps.health.outputs.todo_count }}
-  - Improvements applied: Success!
-LOG
+          $(date +%Y-%m-%d): Iteration $BOT_VERSION complete
+          - Tests found: ${{ steps.health.outputs.test_count }}
+          - TODOs tracked: ${{ steps.health.outputs.todo_count }}
+          - Improvements applied: Success!
+          LOG
           
           echo "✨ Bot got smarter!"
           echo "Next run will be even better!"
-          
+      
       - name: "💡 Generate creative ideas"
         run: |
           echo "🎨 Generating improvement ideas..."
           
           # Create idea backlog
           cat > .github/BOT_IDEAS.md << 'IDEAS'
-# 🚀 Bot Improvement Ideas
-
-## Next Evolution Features:
-- [ ] AI-powered code suggestions
-- [ ] Automatic test generation
-- [ ] Smart dependency updates
-- [ ] Performance optimization hints
-- [ ] Security vulnerability fixes
-- [ ] Documentation auto-generation
-
-## Creative Enhancements:
-- [ ] Custom commit message poems
-- [ ] Celebratory ASCII art on success
-- [ ] Motivational quotes in logs
-- [ ] Progress bars with emojis
-
-The bot will implement these gradually!
-IDEAS
+          # 🚀 Bot Improvement Ideas
+          ## Next Evolution Features:
+          - [ ] AI-powered code suggestions
+          - [ ] Automatic test generation
+          - [ ] Smart dependency updates
+          - [ ] Performance optimization hints
+          - [ ] Security vulnerability fixes
+          - [ ] Documentation auto-generation
+          ## Creative Enhancements:
+          - [ ] Custom commit message poems
+          - [ ] Celebratory ASCII art on success
+          - [ ] Motivational quotes in logs
+          - [ ] Progress bars with emojis
+          The bot will implement these gradually!
+          IDEAS
           
           echo "💡 Ideas generated!"
-        run: |
-          echo "🔍 Scanning codebase..."
-          TEST_COUNT=$(find . -name '*.test.js' | wc -l)
-          echo "test_count=$TEST_COUNT" >> $GITHUB_OUTPUT
-          echo "✅ Health check done!"
-          
-      - name: "💡 Generate Improvements"
+
+      - name: "💡 Generate Daily Log"
         run: |
           cat > .github/DAILY_LOG.md << 'EOF'
           # 🌟 Daily Improvement - $(date +%Y-%m-%d)
@@ -157,7 +148,7 @@ IDEAS
           
           Keep building! 💪
           EOF
-          
+      
       - name: "💾 Commit Changes"
         run: |
           git config user.name "Creative Bot 🤖"
@@ -170,7 +161,7 @@ IDEAS
             💯 Keeping it fresh!"
             git push
           fi
-          
+      
       - name: "🎉 Success!"
         if: success()
         run: |
@@ -180,7 +171,7 @@ IDEAS
           echo "✨ More creative"
           echo "🚀 More capable"
 
-                - name: "🔗 Send to Zapier webhook"
+      - name: "🔗 Send to Zapier webhook"
         run: |
           echo "📡 Preparing webhook data for Zapier..."
           
@@ -197,53 +188,29 @@ IDEAS
           
           echo "✅ Ready to trigger Zapier automations!"
           echo "Add ZAPIER_WEBHOOK_URL secret to enable"
-          
+      
       - name: "📊 Create Zapier integration guide"
         run: |
           cat > .github/ZAPIER_INTEGRATION.md << 'ZAPIER'
-# 🔗 Zapier Integration Guide
-
-## Setup Steps:
-
-1. **Create Zapier Webhook**
-   - Go to Zapier → Create Zap
-   - Trigger: Webhooks by Zapier → Catch Hook
-   - Copy the webhook URL
-
-2. **Add to GitHub Secrets**
-   - Repo Settings → Secrets → New secret
-   - Name: `ZAPIER_WEBHOOK_URL`
-   - Value: Your Zapier webhook URL
-
-3. **Automation Ideas**
-   - ✅ Send daily reports to Slack
-   - 📧 Email summaries to team
-   - 📊 Log to Google Sheets
-   - 💬 Post to Discord
-   - 📱 SMS notifications on failures
-   - 🗓️ Create calendar events
-   - 📝 Update Notion databases
-   - 🎯 Track in project management tools
-
-## Webhook Payload:
-```json
-{
-  "event": "daily_improvement",
-  "date": "2025-12-25T12:00:00Z",
-  "stats": {
-    "tests": 5,
-    "todos": 12,
-    "status": "success"
-  }
-}
-```
-
-## Advanced: Multi-trigger Setup
-- Success webhook → Celebration automation
-- Failure webhook → Alert team immediately  
-- Daily digest → Summary reports
-
-Zapier makes your bot even more powerful! 🚀
-ZAPIER
+          # 🔗 Zapier Integration Guide
+          ## Setup Steps:
+          1. **Create Zapier Webhook**
+             - Go to Zapier → Create Zap
+             - Trigger: Webhooks by Zapier → Catch Hook
+             - Copy the webhook URL
+          2. **Add to GitHub Secrets**
+             - Repo Settings → Secrets → New secret
+             - Name: `ZAPIER_WEBHOOK_URL`
+             - Value: Your Zapier webhook URL
+          3. **Automation Ideas**
+             - ✅ Send daily reports to Slack
+             - 📧 Email summaries to team
+             - 📊 Log to Google Sheets
+             - 💬 Post to Discord
+             - 📱 SMS notifications on failures
+             - 🗓️ Create calendar events
+             - 📝 Update Notion databases
+             - 🎯 Track in project management tools
+          ZAPIER
           
           echo "📚 Integration guide created!"
