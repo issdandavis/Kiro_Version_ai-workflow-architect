@@ -28,6 +28,13 @@ This platform is designed for **universal adaptability** - whether you want to:
 - **Cost Tracking** - Monitor AI usage, set budgets, get alerts
 - **Enterprise Security** - RBAC, 2FA, audit logging, rate limiting
 
+### 📚 Living Document Review System (NEW)
+- **Automated Research Ingestion** - Fetch and catalog patents, papers, and repos
+- **Taxonomy System** - Number-Letter-Symbol IDs for stable cross-referencing
+- **GitHub-Based Workflow** - Automated issue creation and review tracking
+- **Firebase Sync** - Real-time updates to Studio applications
+- See [Living Document System Docs](docs/LIVING_DOCUMENT_SYSTEM.md) for details
+
 ### 🤖 AI Autonomy Mode (NEW in v2.0)
 Let AI take control of the platform at your discretion:
 - **Supervised Mode** - Review and approve each action before execution
