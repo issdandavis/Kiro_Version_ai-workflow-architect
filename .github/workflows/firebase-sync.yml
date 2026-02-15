@@ -1,0 +1,92 @@
+name: Firebase Sync
+
+on:
+  push:
+    branches:
+      - main
+      - copilot/**
+    paths:
+      - 'docs/living-document.md'
+      - 'docs/taxonomy.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync-to-firebase:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Sync living document to Firebase
+        env:
+          FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          echo "🔄 Syncing living-document.md to Firebase..."
+
+          # Create JSON payload using Python for proper escaping
+          python3 << 'PYTHON_SCRIPT'
+          import json
+          import sys
+          from datetime import datetime
+
+          try:
+              with open('docs/living-document.md', 'r') as f:
+                  living_doc = f.read()
+              with open('docs/taxonomy.md', 'r') as f:
+                  taxonomy = f.read()
+              
+              payload = {
+                  "living_document": living_doc,
+                  "taxonomy": taxonomy,
+                  "last_updated": datetime.utcnow().isoformat() + "Z",
+                  "source": "github-actions",
+                  "repository": "${{ github.repository }}",
+                  "commit": "${{ github.sha }}"
+              }
+              
+              with open('/tmp/sync-payload.json', 'w') as f:
+                  json.dump(payload, f, indent=2)
+              
+              print("✅ Prepared sync payload")
+          except Exception as e:
+              print(f"❌ Error: {e}", file=sys.stderr)
+              sys.exit(1)
+          PYTHON_SCRIPT
+
+          # Log the sync attempt
+          # (actual Firebase sync requires credentials)
+          echo "Payload size: $(wc -c < /tmp/sync-payload.json) bytes"
+
+          # TODO: Implement Firebase API call when credentials configured
+          # Example:
+          # curl -X POST \
+          #   "https://firestore.googleapis.com/v1/projects/..." \
+          #   -H "Authorization: Bearer $FIREBASE_TOKEN" \
+          #   -H "Content-Type: application/json" \
+          #   -d @/tmp/sync-payload.json
+
+          echo "ℹ️  Firebase credentials not configured."
+          echo "ℹ️  Configure secrets to enable sync."
+
+      - name: Summary
+        run: |
+          echo "### 📊 Sync Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Living Document**: Ready" >> $GITHUB_STEP_SUMMARY
+          echo "- **Taxonomy**: Ready" >> $GITHUB_STEP_SUMMARY
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          echo "- **Timestamp**: ${TIMESTAMP}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "ℹ️ Configure Firebase secrets to enable" \
+            >> $GITHUB_STEP_SUMMARY
+          echo "full sync functionality." >> $GITHUB_STEP_SUMMARY

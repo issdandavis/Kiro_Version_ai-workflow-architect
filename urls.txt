@@ -1,0 +1,19 @@
+# Space-Tor + Spiralverse Research Hub - Master URL List
+# Add one URL per line. Lines starting with # are comments.
+# Format: <URL>
+# Example URLs (replace with actual URLs):
+
+# Patents & IP Filings (Major = 1)
+# https://patents.google.com/patent/US1234567
+
+# Academic Papers (Major = 2)
+# https://arxiv.org/abs/2401.12345
+
+# GitHub Repositories (Major = 3)
+# https://github.com/example/repo
+
+# Industry News (Major = 4)
+# https://spacenews.com/article-title
+
+# Internal Tools (Major = 5)
+# https://firebase.google.com/docs
