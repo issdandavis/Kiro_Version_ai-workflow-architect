@@ -92,7 +92,7 @@ jobs:
             --output-format json
 
       - name: Create Pull Request with Agent Changes
-        if: success() && github.event_name != 'schedule'
+        if: success() && github.event_name != 'schedule' && vars.ALLOW_ACTIONS_PR == 'true'
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
