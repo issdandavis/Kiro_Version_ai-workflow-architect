@@ -1,0 +1,42 @@
+name: Email Router
+
+on:
+  workflow_call:
+    inputs:
+      action:
+        required: false
+        type: string
+        default: run
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Action to perform
+        required: false
+        default: run
+        type: choice
+        options:
+          - run
+          - test
+
+permissions:
+  contents: read
+
+jobs:
+  route-email:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Route email events
+        run: |
+          ACTION="${{ inputs.action || 'run' }}"
+          echo "Email router action: $ACTION"
+          mkdir -p logs/email-router
+          printf '{"action":"%s","timestamp":"%s","status":"ok"}\n' "$ACTION" "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" > logs/email-router/latest.json
+
+      - name: Upload router logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: email-router-logs-${{ github.run_number }}
+          path: logs/email-router/latest.json

@@ -37,6 +37,9 @@ jobs:
     outputs:
       service: ${{ steps.parse.outputs.service }}
       action: ${{ steps.parse.outputs.action }}
+      agent_type: ${{ steps.parse.outputs.agent_type }}
+      target_path: ${{ steps.parse.outputs.target_path }}
+      model: ${{ steps.parse.outputs.model }}
     steps:
       - name: Parse webhook payload
         id: parse
@@ -44,11 +47,20 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "service=${{ inputs.service }}" >> $GITHUB_OUTPUT
             echo "action=${{ inputs.action }}" >> $GITHUB_OUTPUT
+            echo "agent_type=code-reviewer" >> $GITHUB_OUTPUT
+            echo "target_path=." >> $GITHUB_OUTPUT
+            echo "model=gpt-4" >> $GITHUB_OUTPUT
           else
             SERVICE="${{ github.event.client_payload.service }}"
             ACTION="${{ github.event.client_payload.action }}"
+            AGENT_TYPE="${{ github.event.client_payload.agent_type }}"
+            TARGET_PATH="${{ github.event.client_payload.target_path }}"
+            MODEL="${{ github.event.client_payload.model }}"
             echo "service=${SERVICE:-main-app}" >> $GITHUB_OUTPUT
             echo "action=${ACTION:-run}" >> $GITHUB_OUTPUT
+            echo "agent_type=${AGENT_TYPE:-code-reviewer}" >> $GITHUB_OUTPUT
+            echo "target_path=${TARGET_PATH:-.}" >> $GITHUB_OUTPUT
+            echo "model=${MODEL:-gpt-4}" >> $GITHUB_OUTPUT
           fi
 
       - name: Log webhook received
@@ -72,13 +84,17 @@ jobs:
     if: needs.route-webhook.outputs.service == 'ai-agent' || needs.route-webhook.outputs.service == 'all'
     uses: ./.github/workflows/ai-agent-runner.yml
     with:
-      task: ${{ github.event.client_payload.task || 'default' }}
+      agent_type: ${{ needs.route-webhook.outputs.agent_type }}
+      target_path: ${{ needs.route-webhook.outputs.target_path }}
+      model: ${{ needs.route-webhook.outputs.model }}
     secrets: inherit
 
   trigger-email-router:
     needs: route-webhook
     if: needs.route-webhook.outputs.service == 'email-router' || needs.route-webhook.outputs.service == 'all'
     uses: ./.github/workflows/email-router.yml
+    with:
+      action: ${{ needs.route-webhook.outputs.action }}
     secrets: inherit
 
   notify-completion:
