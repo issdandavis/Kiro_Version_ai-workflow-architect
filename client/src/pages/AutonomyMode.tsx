@@ -518,5 +518,6 @@ export default function AutonomyMode() {
         </TabsContent>
       </Tabs>
     </div>
+    </Layout>
   );
 }
