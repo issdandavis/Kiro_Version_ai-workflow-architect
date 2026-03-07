@@ -22,7 +22,8 @@
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
-    "test": "echo \"No tests configured\""
+    "test": "echo \"No tests configured\"",
+    "workflow:ai-runner:validate": "node script/validate-ai-runner.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
