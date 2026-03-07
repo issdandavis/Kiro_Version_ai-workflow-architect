@@ -1,0 +1,219 @@
+{
+  "timestamp": "2026-03-07T01:14:20+00:00",
+  "agent_type": "code-reviewer",
+  "model": "gpt-4",
+  "provider": "fallback-static",
+  "target": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect",
+  "snapshot": {
+    "exists": true,
+    "kind": "directory",
+    "items": [
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.env.example",
+        "suffix": ".example"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.env.test",
+        "suffix": ".test"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/FETCH_HEAD",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/HEAD",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/config",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/config.worktree",
+        "suffix": ".worktree"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/description",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/hooks/applypatch-msg.sample",
+        "suffix": ".sample"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/hooks/commit-msg.sample",
+        "suffix": ".sample"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/hooks/fsmonitor-watchman.sample",
+        "suffix": ".sample"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/hooks/post-update.sample",
+        "suffix": ".sample"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/hooks/pre-applypatch.sample",
+        "suffix": ".sample"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/hooks/pre-commit.sample",
+        "suffix": ".sample"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/hooks/pre-merge-commit.sample",
+        "suffix": ".sample"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/hooks/pre-push.sample",
+        "suffix": ".sample"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/hooks/pre-rebase.sample",
+        "suffix": ".sample"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/hooks/pre-receive.sample",
+        "suffix": ".sample"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/hooks/prepare-commit-msg.sample",
+        "suffix": ".sample"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/hooks/push-to-checkout.sample",
+        "suffix": ".sample"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/hooks/sendemail-validate.sample",
+        "suffix": ".sample"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/hooks/update.sample",
+        "suffix": ".sample"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/index",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/info/exclude",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/logs/HEAD",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/logs/refs/heads/fix/workflow-autonomy-hardening-20260307",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/logs/refs/remotes/origin/copilot/create-living-document-review-plan",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/logs/refs/remotes/origin/fix/workflow-autonomy-hardening-20260307",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/logs/refs/remotes/origin/main",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/logs/refs/remotes/origin/setup-auto-merge-workflow",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/logs/refs/remotes/origin/update-auto-review-merge",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/objects/pack/pack-52f376ada602ba6089c56fd2129665da49ccd69a.idx",
+        "suffix": ".idx"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/objects/pack/pack-52f376ada602ba6089c56fd2129665da49ccd69a.pack",
+        "suffix": ".pack"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/objects/pack/pack-52f376ada602ba6089c56fd2129665da49ccd69a.rev",
+        "suffix": ".rev"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/refs/heads/fix/workflow-autonomy-hardening-20260307",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/refs/remotes/origin/copilot/create-living-document-review-plan",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/refs/remotes/origin/fix/workflow-autonomy-hardening-20260307",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/refs/remotes/origin/main",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/refs/remotes/origin/setup-auto-merge-workflow",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.git/refs/remotes/origin/update-auto-review-merge",
+        "suffix": ""
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.github/DAILY_LOG.md",
+        "suffix": ".md"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.github/ISSUE_TEMPLATE/bug_report.md",
+        "suffix": ".md"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.github/ISSUE_TEMPLATE/source_review.md",
+        "suffix": ".md"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.github/agents/unified-integration-architect.agent.md",
+        "suffix": ".md"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.github/fix-history.json",
+        "suffix": ".json"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.github/workflows/ai-agent-runner.yml",
+        "suffix": ".yml"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.github/workflows/automated-sync-zapier.yml",
+        "suffix": ".yml"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.github/workflows/daily-improvement-bot.yml",
+        "suffix": ".yml"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.github/workflows/datadog-synthetics.yml",
+        "suffix": ".yml"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.github/workflows/email-router.yml",
+        "suffix": ".yml"
+      },
+      {
+        "path": "/home/runner/work/Kiro_Version_ai-workflow-architect/Kiro_Version_ai-workflow-architect/.github/workflows/feature-shipper-bot.yml",
+        "suffix": ".yml"
+      }
+    ]
+  },
+  "recommendations": [
+    "Indexed 50 files for code-reviewer analysis.",
+    "Workflow execution is healthy: runner script found and produced logs.",
+    "Next step: wire provider-specific prompting for non-fallback models."
+  ],
+  "status": "ok"
+}
